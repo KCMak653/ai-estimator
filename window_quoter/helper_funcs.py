@@ -14,15 +14,14 @@ def get_finish_key(base_finish, exterior_color_selected, stain_selected):
     if exterior_color_selected: return 'Colour'
     return 'White' # Default if not explicitly coloured/stained
 
-def get_base_price(item_type, finish, sf):
-    if item_type not in base_prices: raise ValueError(f"Unknown item type: {item_type}")
-    if finish not in base_prices[item_type]:
-        original_finish = finish
-        finish = 'White' # Fallback
-        if finish not in base_prices[item_type]:
-             raise ValueError(f"Base price finish '{original_finish}' or fallback '{finish}' not found for {item_type}")
+def get_base_price(window_type, finish, pricing_config, sf):
 
-    brackets = base_prices[item_type][finish]
+    brackets = pricing_config.get(f"{window_type}.{finish}")
+    
+    
+    if brackets is None:
+        raise ValueError(f"Base price finish '{finish}' not found for {window_type}")
+
     base_price = 0
     price_per_sf_over = 0
     last_max_sf = 0

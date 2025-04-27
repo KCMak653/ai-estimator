@@ -29,7 +29,8 @@ if __name__ == "__main__":
     casement.interior = "white"  # or "paint" @Required
     casement.exterior_color = None # or "color_match"  or "standard" @Optional
 
-    casement.stain = None # or 'interior' or 'exterior' @Optional
+    casement.stain.interior = false # @Optional
+    casement.stain.exterior = false # @Optional
 
     casement.rotto_corner_drive.1_corner = false # @Optional
     casement.rotto_corner_drive.2_corners = false # @Optional
@@ -46,7 +47,8 @@ if __name__ == "__main__":
     # Omit if window_type != 'awning'
     awning.interior = "white"  # or "paint" @Required
     awning.exterior_color = None # or "standard" or "color_match" # @Optional
-    awning.stain = None # "interior" or "exterior" # @Optional
+    awning.stain.interior = false # @Optional
+    awning.stain.exterior = false # @Optional
     awning.encore_system = false # @Optional
     awning.limiters = false # @Optional
     ################################################
@@ -134,9 +136,9 @@ if __name__ == "__main__":
     # "half_circle", "quarter_circle", "ellipse", "true_ellipse", "triangle", "trapezoid", "extended_arch"
     shapes.type = None  # or one of the above @Optional
 
-    shapes.add_brickmould = false
-    shapes.add_inside_casing_all_around = false
-    shapes.add_extension = false
+    shapes.extras.brickmould = false
+    shapes.extras.inside_casing_all_around = false
+    shapes.extras.extension = false
 
     # Glass pg 19-20
 

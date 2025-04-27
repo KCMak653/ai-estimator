@@ -1,16 +1,31 @@
 from helper_funcs import *
 from price_list_2025 import *
-
+from pyhocon import ConfigFactory
 # --- Main Quoting Function --- (Keep quote_single_item as before)
 
 class WindowQuoter:
-    def quote_single_item(self, config):
-        price_breakdown = {}
-        current_price = 0.0 # Initialize to float
+    def __init__(self, config_path):
+        self.window_config = ConfigFactory.parse_file("window.conf")
+        self.pricing_config = ConfigFactor.parse_file("pricing.conf")
+        ## TODO add a bunch of validation, probably to go before the window quoter. So
+        ## as to form feedback loop with AI valid_config_generator
+        self.width = self.window_config.get('width')
+        self.height = self.window_config.get('height')
+        self.window_type = self.window_config.get('window_type')
+        self.interior_finish = self.window_config.get(f"{self.window_type}.interior") if self.window_type in ['casement', 'awning', 'picture_window','fixed_casement'] else 'white'
+        self.exterior_color = self.window_config.get(f"{self.window_type}.exterior_color")
+        self.stain_config = self.window_config.get(f"{self.window_type}.stain")
+        self.hardware_config = self.window_config.get(f"{self.window_type}.hardware")
+        self.shape_config = self.window_config.get(f"{shapes}")
+        if self.shape_config is not None and self.shape_config.get("type") is None:
+            self.shape_config = None
+
+
+    def quote_window(self, price_breakdown = {}, current_price = 0.0):
 
         # 1. Basic Calculations
-        sf = calculate_sf(config['width'], config['height'])
-        lf = calculate_lf(config['width'], config['height'])
+        sf = calculate_sf(self.width, self.height)
+        lf = calculate_lf(self.width, self.height)
         if sf <= 0: # Basic validation
             price_breakdown['Error'] = "Width and Height must be greater than 0."
             return 0, price_breakdown
@@ -19,7 +34,7 @@ class WindowQuoter:
 
         # 2. Base Price
         try:
-            base_p = get_base_price(config['item_type'], config['finish'], sf)
+            base_p = get_base_price(self.window_type, self.interior_finish, self.pricing_config, sf)
             price_breakdown['Base Price (SF based)'] = f"{base_p:.2f}"
             current_price = base_p
         except ValueError as e:
@@ -27,65 +42,50 @@ class WindowQuoter:
             return 0, price_breakdown
 
         # 3. Exterior Color Upcharge
-        if config['exterior_color']:
-            if config.get('exterior_custom_match', False):
-                color_upcharge = option_prices['Exterior Custom Colour Match']
-                current_price += color_upcharge
-                price_breakdown['Exterior Custom Colour'] = f"{color_upcharge:.2f}"
-            else:
-                color_upcharge_perc = option_prices['Exterior Colour Gentek/Kaycan']
-                color_upcharge = base_p * color_upcharge_perc # Apply percentage to base
-                current_price += color_upcharge
-                price_breakdown['Exterior Colour Upcharge (25%)'] = f"{color_upcharge:.2f}"
-
+        if self.exterior_color is not None:
+            exterior_upcharge = color_upcharge = base_p * self.pricing_config.get(f"{window_type}.exterior_color.base_perc")
+            price_breakdown['Exterior Colour Upcharge'] = f"{exterior_upcharge:.2f}"
+            if self.exterior_color == 'color_match':
+                color_upcharge = self.pricing_config.get(f"{window_type}.exterior_color.color_match_add_on") 
+                exterior_upcharge += color_upcharge
+                price_breakdown['Exterior Colour Match'] = f"{color_upcharge:.2f}"
+            current_price += exterior_upcharge
+            
         # 4. Stain Upcharge
-        stain_cost = 0
-        stain_selection = config.get('stain', 'None')
-        if stain_selection != 'None':
-            stain_key_int = f"Stain Interior ({config['item_type']})"
-            stain_key_ext = f"Stain Exterior ({config['item_type']})"
-            stain_key_ext_only = "Stain Exterior Only (Sliders/Hung)"
-
-            # Example: Refine logic based on item type and selection
-            if config['item_type'] in ['Fixed Casement', 'Picture Window']:
-                if stain_selection in ['Interior', 'Both']:
-                    stain_cost += option_prices.get('Stain Interior (Fixed Casement/Picture)', 0)
-                if stain_selection in ['Exterior', 'Both']:
-                    stain_cost += option_prices.get('Stain Exterior (Fixed Casement/Picture)', 0)
-            elif config['item_type'] in ['Casement', 'Awning']:
-                if stain_selection in ['Interior', 'Both']:
-                    stain_cost += option_prices.get('Stain Interior (Casement/Awning)', 0) # Check Awning price diff?
-                if stain_selection in ['Exterior', 'Both']:
-                    stain_cost += option_prices.get('Stain Exterior (Casement/Awning)', 0)
-            # Add logic for other types if needed
-
-            if stain_cost > 0:
-                price_breakdown[f"Stain Add-on ({stain_selection})"] = f"{stain_cost:.2f}"
-                current_price += stain_cost
+        for loc in ['exterior', 'interior']:
+            if self.stain_config.get(loc):
+                stain_cost = self.pricing_config.get(f"{window_type}.stain.{loc}")
+                if stain_cost is not None:
+                    price_breakdown[f"Stain Add-on ({loc})"] = f"{stain_cost:.2f}"
+                    current_price += stain_cost
 
         # 5. Hardware Options
-        hardware_total = 0
-        for opt in config.get('hardware_opts', []):
-            cost = option_prices.get(opt)
-            if cost is not None:
-                hardware_total += cost
-                price_breakdown[f"Hardware: {opt}"] = f"{cost:.2f}"
-            else:
-                st.warning(f"Hardware option '{opt}' not found in price list.") # Use st.warning
-        current_price += hardware_total
+        for hardware, incl_bool in self.hardware_config.items():
+            if incl_bool:
+                cost = self.pricing_config.get(f"{window_type}.{hardware}")
+                if cost is not None:
+                    price_breakdown[f"Hardware: {hardware}"] = f"{cost:.2f}"
+                    current_price += cost
+
+        # interior/exterior stain
+        # add hardware subtype
 
         # 6. Shape Add-on
-        shape_cost = 0
-        shape_selection = config.get('shape', 'None')
-        if shape_selection != 'None':
-            shape_cost = shape_prices.get(shape_selection, 0)
-            if shape_cost > 0:
-                price_breakdown[f"Shape Add-on: {shape_selection}"] = f"{shape_cost:.2f}"
-                current_price += shape_cost
-            else:
-                st.warning(f"Shape '{shape_selection}' not found in price list.")
+        if self.shape_config is not None:
+            shape_type = self.shape_config.get("type")
+            shape_cost = pricing_config.get(f"shapes.{shape_type}")
+            price_breakdown[f"Shape Add-on: {shape_type}"] = f"{shape_cost:.2f}"
+            current_price += shape_cost
+            for extra, incl_bool in self.shape_config.get("extras").items():
+                if incl_bool:
+                    cost = self.pricing_config.get(f"shapes.{extra}")
+                    price_breakdown[f"Shape Add-on Extra: {extra}"] = f"{cost:.2f}"
+                    current_price += cost
+
+        return current_price, price_breakdown
 
         # 7. Glass Upcharge
+    def quote_window(self, price_breakdown = {}, current_price = 0.0)
         glass_cost = 0
         glass_type_selection = config.get('glass_type', 'Standard') # Default to a non-upcharge type
         pane_type = config.get('glass_panes', 'Double')
