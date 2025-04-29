@@ -32,12 +32,12 @@ if __name__ == "__main__":
     casement.stain.interior = false # @Optional
     casement.stain.exterior = false # @Optional
 
-    casement.rotto_corner_drive.1_corner = false # @Optional
-    casement.rotto_corner_drive.2_corners = false # @Optional
-    casement.egress_hardware = false # @Optional
-    casement.hinges_add_over_30 = false # @Optional
-    casement.limiters = false # @Optional
-    casement.encore_system = false # @Optional
+    casement.hardware.rotto_corner_drive.1_corner = false # @Optional
+    casement.hardware.rotto_corner_drive.2_corners = false # @Optional
+    casement.hardware.egress_hardware = false # @Optional
+    casement.hardware.hinges_add_over_30 = false # @Optional
+    casement.hardware.limiters = false # @Optional
+    casement.hardware.encore_system = false # @Optional
     ################################################
 
 
@@ -49,8 +49,8 @@ if __name__ == "__main__":
     awning.exterior_color = None # or "standard" or "color_match" # @Optional
     awning.stain.interior = false # @Optional
     awning.stain.exterior = false # @Optional
-    awning.encore_system = false # @Optional
-    awning.limiters = false # @Optional
+    awning.hardware.encore_system = false # @Optional
+    awning.hardware.limiters = false # @Optional
     ################################################
 
 
@@ -61,7 +61,8 @@ if __name__ == "__main__":
     fixed_casement.interior = "white"  # or "paint" @Required
     fixed_casement.exterior_color = None # or "standard"  or "color_match" @Optional
 
-    fixed_casement.stain = None # or "interior"  # or "exterior" @Optional
+    fixed_casement.stain.interior = false # @Optional
+    fixed_casement.stain.exterior = false # @Optional
     ################################################
 
 
@@ -72,7 +73,8 @@ if __name__ == "__main__":
     picture_window.interior = "white"  # or "paint" @Required
     picture_window.exterior_color = None # or "color_match"  or "standard" @Optional
 
-    picture_window.stain = None # or "exterior" or "interior" @Optional
+    picture_window.stain.interior = false # @Optional
+    picture_window.stain.exterior = false # @Optional
     ################################################
 
 
@@ -81,7 +83,7 @@ if __name__ == "__main__":
     # Single slider tilt/lift-out
     # Omit if window_type != 'single_slider'
     single_slider.exterior_color = None  # or "standard" or "color_match" @Optional
-    single_slider.stain = None  # or "exterior" @Optional
+    single_slider.stain.exterior = false # @Optional
     ################################################
 
 
@@ -92,7 +94,7 @@ if __name__ == "__main__":
     # interior color is fixed: white only
     # interior stain not available
     single_hung.exterior_color = None  # or "standard" or "color_match" @Optional
-    single_hung.stain = None  # or "exterior" @Optional
+    single_hung.stain.exterior = false # @Optional
     ################################################
 
 
@@ -103,7 +105,7 @@ if __name__ == "__main__":
     # interior color is fixed: white only
     # interior stain not available
     double_end_slider.exterior_color = None  # or "standard" or "color_match" @Optional
-    double_end_slider.stain = None  # or "exterior" @Optional
+    double_end_slider.stain.exterior = false # @Optional
     ################################################
 
 
@@ -114,7 +116,7 @@ if __name__ == "__main__":
     # interior color is fixed: white only
     # interior stain not available
     double_hung.exterior_color = None  # or "standard" or "color_match" @Optional
-    double_hung.stain = None  # or "exterior" @Optional
+    double_hung.stain.exterior = false # @Optional
     ################################################
 
 
@@ -125,7 +127,7 @@ if __name__ == "__main__":
     # interior color is fixed: white only
     # interior stain not available
     double_slider.exterior_color = None  # or "standard" or "color_match" @Optional
-    double_slider.stain = None  # or "exterior" @Optional
+    double_slider.stain.exterior = false # @Optional
     ################################################
 
 
@@ -168,7 +170,7 @@ if __name__ == "__main__":
     glass.thickness_mm = 4
 
     # pg 18 brickmoulds & couplers
-    brickmould = false
+    brickmould.include = false
     brickmould.size = "1_5_8"  # options: "0", "5_8", "1_1_4", "1_5_8", "2"
     brickmould.finish = "colour"  # options: "white", "colour", "stain"
     brickmould.include_bay_bow_coupler = false
