@@ -5,6 +5,7 @@ from pyhocon import ConfigFactory
 class ValidConfigGenerator:
 
     default_conf = open("valid_config_generator/window.conf", "r").read()
+    additional_context = open("valid_config_generator/custom_context.txt", "r").read()
 
     prompt_instructions = f"""
         You are a helpful assistant that converts free-form specifications on a quote sheet for window replacements to a flat HOCON-style .conf file with constrained keys.
@@ -26,15 +27,19 @@ class ValidConfigGenerator:
 
         {default_conf}
 
+        Additional context:
+
+        {additional_context}
+
     """
-    # TODO: Set up a validation loop to check if the config is valid
+
 
     def __init__(self, model_name):
         self.model = ModelIO("openai", model_name, self.generate_prompt())
         self.config_validator = ConfigValidator()
     
-    def generate_prompt(self, default_conf=default_conf):
-        return self.prompt_instructions.format(default_conf=default_conf)
+    def generate_prompt(self, default_conf=default_conf, additional_context=additional_context):
+        return self.prompt_instructions.format(default_conf=default_conf, additional_context=additional_context)
 
     def generate_config(self, free_text, file_path):
         max_count = 2 # max number of times to try to generate a valid config

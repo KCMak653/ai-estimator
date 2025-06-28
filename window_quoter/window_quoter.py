@@ -1,6 +1,5 @@
 from window_quoter.helper_funcs import *
 from pyhocon import ConfigFactory
-# --- Main Quoting Function --- (Keep quote_single_item as before)
 
 class WindowQuoter:
     def __init__(self, window_config_path, pricing_config_path):
