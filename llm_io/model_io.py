@@ -19,7 +19,7 @@ class ModelIO:
         Authenticate the user.
         """
         # Implement authentication logic here
-        try:
+        try: # Only show first 5 chars for security
             client = OpenAI()
             return client
         except Exception as e:

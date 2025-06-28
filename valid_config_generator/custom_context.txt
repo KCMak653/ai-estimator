@@ -1,0 +1,23 @@
+Additonal context for prompt:
+
+Helpful hints for building config:
+
+Common acronyms:
+
+Window types
+DS: Double slider
+CA: Casement
+SS: Single slider
+DH: Double hung
+A: Awning
+SH: Single hung
+
+Finishes:
+W: White
+
+
+Industry conventions:
+
+- For exterior/interior finishes (i.e <window_type>.interior, <window_type>.exterior) any color that isn't white would be considered color respectively. i.e red in, black in, yellow out would all be classifed as color
+- The terms 'in' and 'out' are used to refer to interior and exterior respectively
+- Finishes can be separated by a slash '/', the left refering to interior and the right side the exterior. Example white/black means white interior and color exterior. stain/white is interior stain and white exterior.
