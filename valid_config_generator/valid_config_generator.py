@@ -47,8 +47,12 @@ class ValidConfigGenerator:
             free_window_config = f"The config {free_text} was provided but the following was invalid. Fix the errors and return the full config: {warnings}"
             print(f"sending prompt: {free_window_config}")
             response = self.model.get_response(free_window_config)
-            self.write_hocon_to_file(response, file_path)
-            errs, warnings = self.validate_config(file_path)
+            if response is None:
+                print("Did not receive a response")
+                errs = True
+            else:
+                self.write_hocon_to_file(response, file_path)
+                errs, warnings = self.validate_config(file_path)
             i += 1
         
         if errs: 

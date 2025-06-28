@@ -1,5 +1,4 @@
 from window_quoter.helper_funcs import *
-from window_quoter.price_list_2025 import *
 from pyhocon import ConfigFactory
 # --- Main Quoting Function --- (Keep quote_single_item as before)
 
@@ -7,19 +6,16 @@ class WindowQuoter:
     def __init__(self, window_config_path, pricing_config_path):
         self.window_config = ConfigFactory.parse_file(f"{window_config_path}")
         self.pricing_config = ConfigFactory.parse_file(f"{pricing_config_path}")
-        ## TODO add a bunch of validation, probably to go before the window quoter. So
-        ## as to form feedback loop with AI valid_config_generator
         self.width = self.window_config.get('width')
         self.height = self.window_config.get('height')
         self.sf = calculate_sf(self.width, self.height)
         self.lf = calculate_lf(self.width, self.height)
         self.window_type = self.window_config.get('window_type')
         self.interior_finish = getOrReturnNone(self.window_config, f"{self.window_type}.interior") if self.window_type in ['casement', 'awning', 'picture_window','fixed_casement'] else 'white'
-        self.exterior_color = getOrReturnNone(self.window_config, f"{self.window_type}.exterior_color")
-        self.stain_config = getOrReturnNone(self.window_config, f"{self.window_type}.stain")
+        self.exterior_finish = getOrReturnNone(self.window_config, f"{self.window_type}.exterior")
         self.hardware_config = getOrReturnNone(self.window_config, f"{self.window_type}.hardware")
         self.shape_config = getOrReturnNone(self.window_config, "shapes")
-        if self.shape_config is not None and getOrReturnNone(self.shape_config, "type") == 'None':
+        if self.shape_config is not None and getOrReturnNone(self.shape_config, "type") is None:
             self.shape_config = None
         self.glass_config = getOrReturnNone(self.window_config, "glass")
         self.brickmould_config = getOrReturnNone(self.window_config, "brickmould")
@@ -29,7 +25,7 @@ class WindowQuoter:
         if self.casing_extension_config is not None and not getOrReturnNone(self.casing_extension_config, "type"):
             self.casing_extension_config = None
 
-    def quote_window(self, price_breakdown = {}, current_price = 0.0):
+    def quote_frame(self, price_breakdown = {}, current_price = 0.0):
 
         # 1. Basic Calculations
         if self.sf <= 0: # Basic validation
@@ -38,32 +34,40 @@ class WindowQuoter:
         price_breakdown['Calculated SF'] = f"{self.sf:.2f}"
         price_breakdown['Calculated LF'] = f"{self.lf:.2f}"
         
-        # 2. Base Price
+        # 2. Base Price - use white pricing for stain, actual finish for others
         try:
-            base_p = get_base_price(self.window_type, self.interior_finish, self.pricing_config, self.sf)
-            price_breakdown['Base Price (SF based)'] = f"{base_p:.2f}"
-            current_price = base_p
+            base_finish = 'white' if self.interior_finish == 'stain' else self.interior_finish
+            base_p = get_base_price(self.window_type, base_finish, self.pricing_config, self.sf)
+            price_breakdown[f'Base Price ({self.window_type} interior {base_finish})'] = f"{base_p:.2f}"
+            current_price += base_p
         except ValueError as e:
             price_breakdown['Error'] = f"Base Price Error: {e}"
             return 0, price_breakdown
 
-        # 3. Exterior Color Upcharge
-        if self.exterior_color is not None:
-            exterior_upcharge = color_upcharge = base_p * getOrReturnNone(self.pricing_config, f"{self.window_type}.exterior_color.base_perc")
-            price_breakdown['Exterior Colour Upcharge'] = f"{exterior_upcharge:.2f}"
-            if self.exterior_color == 'color_match':
-                color_upcharge = getOrReturnNone(self.pricing_config, f"{self.window_type}.exterior_color.color_match_add_on") 
-                exterior_upcharge += color_upcharge
-                price_breakdown['Exterior Colour Match'] = f"{color_upcharge:.2f}"
-            current_price += exterior_upcharge
-            
-        # 4. Stain Upcharge
-        for loc in ['exterior', 'interior']:
-            if getOrReturnNone(self.stain_config, loc):
-                stain_cost = getOrReturnNone(self.pricing_config, f"{self.window_type}.stain.{loc}")
+        # 3. Exterior Finish Upcharge
+        if self.exterior_finish is not None and self.exterior_finish != 'white':
+            if self.exterior_finish == 'color':
+                exterior_upcharge = base_p * getOrReturnNone(self.pricing_config, f"{self.window_type}.exterior.color_base_perc")
+                price_breakdown['Exterior Color Upcharge'] = f"{exterior_upcharge:.2f}"
+                current_price += exterior_upcharge
+            elif self.exterior_finish == 'custom_color':
+                exterior_upcharge = base_p * getOrReturnNone(self.pricing_config, f"{self.window_type}.exterior.color_base_perc")
+                custom_color_add_on = getOrReturnNone(self.pricing_config, f"{self.window_type}.exterior.custom_color_add_on")
+                exterior_upcharge += custom_color_add_on
+                price_breakdown['Exterior Custom Color Upcharge'] = f"{exterior_upcharge:.2f}"
+                current_price += exterior_upcharge
+            elif self.exterior_finish == 'stain':
+                stain_cost = getOrReturnNone(self.pricing_config, f"{self.window_type}.exterior.stain_add_on")
                 if stain_cost is not None:
-                    price_breakdown[f"Stain Add-on ({loc})"] = f"{stain_cost:.2f}"
+                    price_breakdown['Exterior Stain Add-on'] = f"{stain_cost:.2f}"
                     current_price += stain_cost
+            
+        # 4. Interior Stain Upcharge
+        if self.interior_finish == 'stain':
+            stain_cost = getOrReturnNone(self.pricing_config, f"{self.window_type}.interior.stain_add_on")
+            if stain_cost is not None:
+                price_breakdown['Interior Stain Add-on'] = f"{stain_cost:.2f}"
+                current_price += stain_cost
 
         # 5. Hardware Options
         if self.hardware_config:
@@ -114,7 +118,7 @@ class WindowQuoter:
             return 0, price_breakdown
             
         # Calculate base glass price
-        current_price = glass_price * min(self.sf, min_sf)
+        current_price += glass_price * min(self.sf, min_sf)
         price_breakdown[f"Glass Base Price ({glass_type} {glass_subtype} {glass_thickness}mm)"] = f"{current_price:.2f}"
         
         # Add shape surcharge if applicable
@@ -153,18 +157,18 @@ class WindowQuoter:
             price_breakdown[f"Casing Extension"] = f"{casing_extension_cost:.2f}"
             current_price += casing_extension_cost
 
-        if getOrReturnNone(self.casing_extension_config, "include_bay_bow_extension"):
-            bay_bow_extension_cost = getOrReturnNone(self.pricing_config, "casing_extension.bay_bow_extension")
-            price_breakdown[f"Bay & Bow Extension"] = f"{bay_bow_extension_cost:.2f}"
-            current_price += bay_bow_extension_cost
+            if getOrReturnNone(self.casing_extension_config, "include_bay_bow_extension"):
+                bay_bow_extension_cost = getOrReturnNone(self.pricing_config, "casing_extension.bay_bow_extension")
+                price_breakdown[f"Bay & Bow Extension"] = f"{bay_bow_extension_cost:.2f}"
+                current_price += bay_bow_extension_cost
 
-        if getOrReturnNone(self.casing_extension_config, "include_bay_bow_plywood"):
-            # Get bay/bow plywood price brackets
-            plywood_brackets = getOrReturnNone(self.pricing_config, "casing_extension.bay_bow_plywood")
-            if plywood_brackets is None:
-                price_breakdown['Error'] = "Bay/bow plywood pricing not found"
-                return 0, price_breakdown
-                
+            if getOrReturnNone(self.casing_extension_config, "include_bay_bow_plywood"):
+                # Get bay/bow plywood price brackets
+                plywood_brackets = getOrReturnNone(self.pricing_config, "casing_extension.bay_bow_plywood")
+                if plywood_brackets is None:
+                    price_breakdown['Error'] = "Bay/bow plywood pricing not found"
+                    return 0, price_breakdown
+                    
             # Convert brackets to format expected by calculate_price_from_brackets
             converted_brackets = []
             for bracket in plywood_brackets:
@@ -188,15 +192,15 @@ class WindowQuoter:
 
         return unit_price, sorted_breakdown
 
-    def quote_project(self):
+    def quote_window(self):
         current_price = 0
         price_breakdown = {}
 
-        current_price, price_breakdown = self.quote_window(price_breakdown, current_price)
+        current_price, price_breakdown = self.quote_frame(price_breakdown, current_price)
         current_price, price_breakdown = self.quote_glass(price_breakdown, current_price)
         current_price, price_breakdown = self.quote_trim(price_breakdown, current_price)
 
-        return current_price, price_breakdown
+        return round(current_price, 2), price_breakdown
 
 """
                 ## TODO: implement grills, sdl

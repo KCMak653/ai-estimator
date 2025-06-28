@@ -131,11 +131,10 @@ class ConfigValidator:
             self._ensure_other_types_absent(config, window_type, errors)
 
         # --- 3. Validate Other Sections (Glass, Shapes, Brickmould, Casing) ---
-        # .get() returns None if section is missing, helpers handle None input
-        self._validate_glass(config.get('glass'), errors)
-        self._validate_shapes(config.get('shapes'), errors)
-        self._validate_brickmould(config.get('brickmould'), errors)
-        self._validate_casing_extension(config.get('casing_extension'), errors)
+        self._validate_glass(getOrReturnNone(config, 'glass'), errors)
+        self._validate_shapes(getOrReturnNone(config, 'shapes'), errors)
+        self._validate_brickmould(getOrReturnNone(config, 'brickmould'), errors)
+        self._validate_casing_extension(getOrReturnNone(config, 'casing_extension'), errors)
 
         return bool(errors), errors
 
