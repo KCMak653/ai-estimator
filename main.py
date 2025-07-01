@@ -15,10 +15,10 @@ if __name__ == "__main__":
     print(f"Creating project with {len(window_descriptions)} windows...")
     
     # Create project quoter with list of descriptions
-    project_quoter = ProjectQuoter(window_descriptions, model_name)
+    project_quoter = ProjectQuoter(model_name)
     
     # Get project quote
-    total_cost, project_breakdown = project_quoter.quote_project()
+    total_cost, project_breakdown = project_quoter.quote_project(window_descriptions)
     
     print(f"\n{'='*60}")
     print(f"PROJECT QUOTE SUMMARY")
@@ -32,7 +32,7 @@ if __name__ == "__main__":
     print(f"\n{'='*60}")
     print(f"DETAILED BREAKDOWN")
     print(f"{'='*60}")
-    
+    print(project_breakdown)
     for key, value in project_breakdown.items():
         if key.startswith("Window"):
             print(f"\n{key}:")

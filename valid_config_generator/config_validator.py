@@ -35,8 +35,7 @@ class ConfigValidator:
         "tinted_clear", "tinted_lowe_180", "tinted_lowe_272",
         "frosted_clear", "laminated_clear", "laminated_lowe_180",
         "laminated_lowe_272", "laminated_laminated",
-        "tempered_lowe_180", "tempered_lowe_272",
-        "low_e_180_272" # Added based on example, clarify if this is valid
+        "tempered_lowe_180", "tempered_lowe_272"
     }
     GLASS_TRIPLE_SUBTYPES: Set[str] = {
         "clear_clear_clear", "frosted_clear_clear",
