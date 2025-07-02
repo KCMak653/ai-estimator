@@ -1,6 +1,7 @@
 from window_quoter.window_quoter import WindowQuoter
 from valid_config_generator.valid_config_generator import ValidConfigGenerator
 from typing import List, Dict, Tuple, Union
+from collections import OrderedDict
 import json
 import os
 
@@ -46,7 +47,7 @@ class ProjectQuoter:
                     else:
                         window_key = f"Window {i}"
                         project_breakdown[window_key] = {
-                            'cost': f"${window_cost:.2f}",
+                            'cost': window_cost,
                             'breakdown': window_breakdown
                         }
                         total_cost += window_cost
@@ -68,13 +69,72 @@ class ProjectQuoter:
                 'details': [f"Window {i}: {desc[:50]}... - {error}" for i, desc, error in failed_configs]
             }
             
-        project_breakdown['Total Project Cost'] = f"${total_cost:.2f}"
+        project_breakdown['Total Project Cost'] = total_cost
         project_breakdown['Quoted Windows'] = len(free_text_descriptions)
         
         # Clean up temp files
         self.cleanup_temp_files(len(free_text_descriptions))
         
-        return total_cost, project_breakdown
+        return total_cost, self.format_json(project_breakdown)
+    
+    def format_json(self, project_breakdown: Dict) -> OrderedDict:
+        """Format project breakdown with ordered keys, starting with 'Quoted Windows'"""
+        formatted = OrderedDict()
+        
+        # Add 'Quoted Windows' first
+        if 'Quoted Windows' in project_breakdown:
+            formatted['Quoted Windows'] = project_breakdown['Quoted Windows']
+        
+        # Add window details in order with nested structure
+        window_keys = sorted([k for k in project_breakdown.keys() if k.startswith('Window ')], 
+                           key=lambda x: int(x.split()[1]))
+        for window_key in window_keys:
+            window_data = project_breakdown[window_key]
+            formatted_window = OrderedDict()
+            
+            # Add sf, lf first if they exist in breakdown
+            breakdown = window_data['breakdown']
+            formatted_window['Square Feet'] = f"{breakdown['sf']:.2f}"
+            formatted_window['Linear Feet'] = f"{breakdown['lf']:.2f}"
+            print("formatted_window", formatted_window)    
+            formatted_breakdown = OrderedDict()
+            base_price_key = [k for k in breakdown.keys() if 'Base Price' in k]
+            formatted_breakdown[base_price_key[0]] = f"${breakdown[base_price_key[0]]:.2f}"
+            glass_price_key = [k for k in breakdown.keys() if 'Glass Base Price' in k]
+            formatted_breakdown[glass_price_key[0]] = f"${breakdown[glass_price_key[0]]:.2f}"
+
+            # Add any other breakdown items with $ formatting
+            for key in breakdown:
+                if key not in ['sf', 'lf', base_price_key[0], glass_price_key[0]] and key not in formatted_breakdown:
+                    value = breakdown[key]
+                    if isinstance(value, (int, float)):
+                        formatted_breakdown[key] = f"${value:.2f}"
+                    else:
+                        formatted_breakdown[key] = value
+            
+            formatted_window['Cost Breakdown'] = formatted_breakdown
+            
+            formatted_window['Window Cost'] = f"${window_data['cost']:.2f}"
+            
+            formatted[window_key] = formatted_window
+            print("formatted", formatted)
+
+        
+        # Add Failed Windows if it exists
+        if 'Failed Windows' in project_breakdown:
+            formatted['Failed Windows'] = project_breakdown['Failed Windows']
+        
+        # Add Total Project Cost at the bottom with $ formatting
+        if 'Total Project Cost' in project_breakdown:
+            total_cost_value = project_breakdown['Total Project Cost']
+            if isinstance(total_cost_value, str) and total_cost_value.startswith('$'):
+                formatted['Total Project Cost'] = total_cost_value
+            elif isinstance(total_cost_value, (int, float)):
+                formatted['Total Project Cost'] = f"${total_cost_value:.2f}"
+            else:
+                formatted['Total Project Cost'] = total_cost_value
+        
+        return formatted
         
 
         

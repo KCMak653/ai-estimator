@@ -30,14 +30,14 @@ class WindowQuoter:
         if self.sf <= 0: # Basic validation
             price_breakdown['Error'] = "Width and Height must be greater than 0."
             return 0, price_breakdown
-        price_breakdown['Calculated SF'] = f"{self.sf:.2f}"
-        price_breakdown['Calculated LF'] = f"{self.lf:.2f}"
+        price_breakdown['sf'] = self.sf
+        price_breakdown['lf'] = self.lf
         
         # 2. Base Price - use white pricing for stain, actual finish for others
         try:
             base_finish = 'white' if self.interior_finish == 'stain' else self.interior_finish
             base_p = get_base_price(self.window_type, base_finish, self.pricing_config, self.sf)
-            price_breakdown[f'Base Price ({self.window_type} interior {base_finish})'] = f"{base_p:.2f}"
+            price_breakdown[f'Base Price ({self.window_type} interior {base_finish})'] = base_p
             current_price += base_p
         except ValueError as e:
             price_breakdown['Error'] = f"Base Price Error: {e}"
@@ -47,25 +47,25 @@ class WindowQuoter:
         if self.exterior_finish is not None and self.exterior_finish != 'white':
             if self.exterior_finish == 'color':
                 exterior_upcharge = base_p * getOrReturnNone(self.pricing_config, f"{self.window_type}.exterior.color_base_perc")
-                price_breakdown['Exterior Color Upcharge'] = f"{exterior_upcharge:.2f}"
+                price_breakdown['Exterior Color Upcharge'] = exterior_upcharge
                 current_price += exterior_upcharge
             elif self.exterior_finish == 'custom_color':
                 exterior_upcharge = base_p * getOrReturnNone(self.pricing_config, f"{self.window_type}.exterior.color_base_perc")
                 custom_color_add_on = getOrReturnNone(self.pricing_config, f"{self.window_type}.exterior.custom_color_add_on")
                 exterior_upcharge += custom_color_add_on
-                price_breakdown['Exterior Custom Color Upcharge'] = f"{exterior_upcharge:.2f}"
+                price_breakdown['Exterior Custom Color Upcharge'] = exterior_upcharge
                 current_price += exterior_upcharge
             elif self.exterior_finish == 'stain':
                 stain_cost = getOrReturnNone(self.pricing_config, f"{self.window_type}.exterior.stain_add_on")
                 if stain_cost is not None:
-                    price_breakdown['Exterior Stain Add-on'] = f"{stain_cost:.2f}"
+                    price_breakdown['Exterior Stain Add-on'] = stain_cost
                     current_price += stain_cost
             
         # 4. Interior Stain Upcharge
         if self.interior_finish == 'stain':
             stain_cost = getOrReturnNone(self.pricing_config, f"{self.window_type}.interior.stain_add_on")
             if stain_cost is not None:
-                price_breakdown['Interior Stain Add-on'] = f"{stain_cost:.2f}"
+                price_breakdown['Interior Stain Add-on'] = stain_cost
                 current_price += stain_cost
 
         # 5. Hardware Options
@@ -74,21 +74,21 @@ class WindowQuoter:
                 if incl_bool:
                     cost = getOrReturnNone(self.pricing_config, f"{self.window_type}.{hardware}")
                     if cost is not None:
-                        price_breakdown[f"Hardware: {hardware}"] = f"{cost:.2f}"
+                        price_breakdown[f"Hardware: {hardware}"] = cost
                         current_price += cost
 
         # 6. Shape Add-on
         if self.shape_config is not None:
             shape_type = getOrReturnNone(self.shape_config, "type")
             shape_cost = getOrReturnNone(self.pricing_config, f"shapes.{shape_type}")
-            price_breakdown[f"Shape Add-on: {shape_type}"] = f"{shape_cost:.2f}"
+            price_breakdown[f"Shape Add-on: {shape_type}"] = shape_cost
             current_price += shape_cost
             extras = getOrReturnNone(self.shape_config, "extras")
             if extras:
                 for extra, incl_bool in extras.items():
                     if incl_bool:
                         cost = getOrReturnNone(self.pricing_config, f"shapes.{extra}")
-                        price_breakdown[f"Shape Add-on Extra: {extra}"] = f"{cost:.2f}"
+                        price_breakdown[f"Shape Add-on Extra: {extra}"] = cost
                         current_price += cost
 
         return current_price, price_breakdown
@@ -106,32 +106,35 @@ class WindowQuoter:
             return 0, price_breakdown
             
         # Find the matching thickness bracket
-        glass_price = None
+        glass_price_unit = None
         for bracket in glass_price_brackets:
             if getOrReturnNone(bracket, 'thickness') == glass_thickness:
-                glass_price = getOrReturnNone(bracket, 'price')
+                glass_price_unit = getOrReturnNone(bracket, 'price')
                 break
                 
-        if glass_price is None:
+        if glass_price_unit is None:
             price_breakdown['Error'] = f"Glass price not found for thickness {glass_thickness}mm"
             return 0, price_breakdown
             
+
+
         # Calculate base glass price
-        current_price += glass_price * min(self.sf, min_sf)
-        price_breakdown[f"Glass Base Price ({glass_type} {glass_subtype} {glass_thickness}mm)"] = f"{current_price:.2f}"
+        glass_price = glass_price_unit * min(self.sf, min_sf)
+        current_price += glass_price
+        price_breakdown[f"Glass Base Price ({glass_type} {glass_subtype} {glass_thickness}mm)"] = glass_price
         
         # Add shape surcharge if applicable
         if self.shape_config is not None:
             shape_add_on = getOrReturnNone(self.pricing_config, f"glass.{glass_type}.shaped_add_on")
             current_price += shape_add_on
-            price_breakdown[f"Glass Shape Add-on"] = f"{shape_add_on:.2f}"
+            price_breakdown[f"Glass Shape Add-on"] = shape_add_on
             
         return current_price, price_breakdown
 
     def quote_trim(self, price_breakdown = {}, current_price = 0.0):
         if self.brickmould_config:
             brickmould_cost = self.lf * getOrReturnNone(self.pricing_config, f"brickmould.{getOrReturnNone(self.brickmould_config, 'size')}.{getOrReturnNone(self.brickmould_config, 'finish')}")
-            price_breakdown[f"Brickmould"] = f"{brickmould_cost:.2f}"
+            price_breakdown[f"Brickmould"] = brickmould_cost
             current_price += brickmould_cost
 
         if self.casing_extension_config:
@@ -153,12 +156,12 @@ class WindowQuoter:
                 casing_extension_cost = calculate_price_from_brackets(self.lf, converted_brackets, "Wood extension")
             else:
                 casing_extension_cost = self.lf * getOrReturnNone(self.pricing_config, f"casing_extension.{getOrReturnNone(self.casing_extension_config, 'type')}.{getOrReturnNone(self.casing_extension_config, 'finish')}")
-            price_breakdown[f"Casing Extension"] = f"{casing_extension_cost:.2f}"
+            price_breakdown[f"Casing Extension"] = casing_extension_cost
             current_price += casing_extension_cost
 
             if getOrReturnNone(self.casing_extension_config, "include_bay_bow_extension"):
                 bay_bow_extension_cost = getOrReturnNone(self.pricing_config, "casing_extension.bay_bow_extension")
-                price_breakdown[f"Bay & Bow Extension"] = f"{bay_bow_extension_cost:.2f}"
+                price_breakdown[f"Bay & Bow Extension"] = bay_bow_extension_cost
                 current_price += bay_bow_extension_cost
 
             if getOrReturnNone(self.casing_extension_config, "include_bay_bow_plywood"):
@@ -177,19 +180,11 @@ class WindowQuoter:
                 converted_brackets.append((max_size, price, over_rate))
                 
             bay_bow_plywood_cost = calculate_price_from_brackets(self.lf, converted_brackets, "Bay/bow plywood")
-            price_breakdown[f"Bay & Bow Plywood"] = f"{bay_bow_plywood_cost:.2f}"
+            price_breakdown[f"Bay & Bow Plywood"] = bay_bow_plywood_cost
             current_price += bay_bow_plywood_cost
 
         return current_price, price_breakdown
 
-    def tidy_breakdown_and_price(self, price_breakdown, current_price):
-        unit_price = round(current_price, 2)
-        # Sort breakdown for better readability, placing price last
-        price_breakdown['===> Calculated Unit Price'] = f"${unit_price:.2f}" # Make it stand out
-
-        sorted_breakdown = dict(sorted(price_breakdown.items(), key=lambda item: item[0].startswith('=')))
-
-        return unit_price, sorted_breakdown
 
     def quote_window(self):
         current_price = 0

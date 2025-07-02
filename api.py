@@ -4,6 +4,7 @@ from flask_cors import CORS
 
 app = Flask(__name__)
 CORS(app, origins="*")
+app.json.sort_keys = False
 @app.route('/quote_project', methods=['POST'])
 def quote_project():
     """
@@ -32,11 +33,13 @@ def quote_project():
     # Create project quoter and get quote
     project_quoter = ProjectQuoter(model_name)
     total_cost, price_breakdown = project_quoter.quote_project(window_descriptions)
-    
-    return jsonify({
+    print("price_breakdown", price_breakdown)
+    json_response = jsonify({
         "project_name": project_name,
         "price_breakdown": price_breakdown
     })
+    print("json_response", json_response)
+    return json_response
 
 @app.route('/test', methods=['GET'])
 def test():
