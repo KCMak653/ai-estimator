@@ -134,7 +134,7 @@ class WindowQuoter:
     def quote_trim(self, price_breakdown = {}, current_price = 0.0):
         if self.brickmould_config:
             brickmould_cost = self.lf * getOrReturnNone(self.pricing_config, f"brickmould.{getOrReturnNone(self.brickmould_config, 'size')}.{getOrReturnNone(self.brickmould_config, 'finish')}")
-            price_breakdown[f"Brickmould"] = brickmould_cost
+            price_breakdown[f"Brickmould ({getOrReturnNone(self.brickmould_config, 'size')}, Finish: {getOrReturnNone(self.brickmould_config, 'finish')})"] = brickmould_cost
             current_price += brickmould_cost
 
         if self.casing_extension_config:
@@ -156,7 +156,7 @@ class WindowQuoter:
                 casing_extension_cost = calculate_price_from_brackets(self.lf, converted_brackets, "Wood extension")
             else:
                 casing_extension_cost = self.lf * getOrReturnNone(self.pricing_config, f"casing_extension.{getOrReturnNone(self.casing_extension_config, 'type')}.{getOrReturnNone(self.casing_extension_config, 'finish')}")
-            price_breakdown[f"Casing Extension"] = casing_extension_cost
+            price_breakdown[f"Casing Extension (Type -> {getOrReturnNone(self.casing_extension_config, 'type')}, {getOrReturnNone(self.casing_extension_config, 'finish')})"] = casing_extension_cost
             current_price += casing_extension_cost
 
             if getOrReturnNone(self.casing_extension_config, "include_bay_bow_extension"):
@@ -171,17 +171,17 @@ class WindowQuoter:
                     price_breakdown['Error'] = "Bay/bow plywood pricing not found"
                     return 0, price_breakdown
                     
-            # Convert brackets to format expected by calculate_price_from_brackets
-            converted_brackets = []
-            for bracket in plywood_brackets:
-                max_size = getOrReturnNone(bracket, 'max_size')
-                price = getOrReturnNone(bracket, 'price')
-                over_rate = getOrReturnNone(bracket, 'over_rate', 0)
-                converted_brackets.append((max_size, price, over_rate))
-                
-            bay_bow_plywood_cost = calculate_price_from_brackets(self.lf, converted_brackets, "Bay/bow plywood")
-            price_breakdown[f"Bay & Bow Plywood"] = bay_bow_plywood_cost
-            current_price += bay_bow_plywood_cost
+                # Convert brackets to format expected by calculate_price_from_brackets
+                converted_brackets = []
+                for bracket in plywood_brackets:
+                    max_size = getOrReturnNone(bracket, 'max_size')
+                    price = getOrReturnNone(bracket, 'price')
+                    over_rate = getOrReturnNone(bracket, 'over_rate', 0)
+                    converted_brackets.append((max_size, price, over_rate))
+                    
+                bay_bow_plywood_cost = calculate_price_from_brackets(self.lf, converted_brackets, "Bay/bow plywood")
+                price_breakdown[f"Bay & Bow Plywood"] = bay_bow_plywood_cost
+                current_price += bay_bow_plywood_cost
 
         return current_price, price_breakdown
 

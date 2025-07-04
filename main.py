@@ -1,12 +1,14 @@
 from project_quoter import ProjectQuoter
+from collections import OrderedDict
 
 if __name__ == "__main__":
     print("Demo: ProjectQuoter with multiple window descriptions")
     
     # List of free text descriptions
     window_descriptions = [
-        "picture window 40 x 30 triple pane lowe 180",
-        # "casement window 36 x 48 double pane lowe 180, white interior",
+        "picture window 40 x 30 triple pane lowe 180, jamb 3.5",
+        "picture window 40 x 30 triple pane lowe 180, brickmould 1.25",
+        "picture window 40 x 30 triple pane lowe 180, brickmould 1 5/8"
         # "awning window 24 x 36 single pane lowe 180"
     ]
     
@@ -15,38 +17,21 @@ if __name__ == "__main__":
     print(f"Creating project with {len(window_descriptions)} windows...")
     
     # Create project quoter with list of descriptions
-    project_quoter = ProjectQuoter(model_name)
+    project_quoter = ProjectQuoter(model_name, debug=True)
     
     # Get project quote
     total_cost, project_breakdown = project_quoter.quote_project(window_descriptions)
     
-    # print(f"\n{'='*60}")
-    # print(f"PROJECT QUOTE SUMMARY")
-    # print(f"{'='*60}")
-    # print(f"Total Cost: ${total_cost:.2f}")
-    # print(f"Successful Windows: {project_breakdown.get('Successful Windows', 0)}")
-    
-    # if 'Failed Windows' in project_breakdown:
-    #     print(f"Failed Windows: {project_breakdown['Failed Windows']['count']}")
-        
-    # print(f"\n{'='*60}")
-    # print(f"DETAILED BREAKDOWN")
-    # print(f"{'='*60}")
-    # print(project_breakdown)
-    # for key, value in project_breakdown.items():
-    #     if key.startswith("Window"):
-    #         print(f"\n{key}:")
-    #         print(f"  Cost: {value['cost']}")
-    #         print("  Key Components:")
-    #         breakdown = value['breakdown']
-    #         for detail_key, detail_value in breakdown.items():
-    #             if 'Price' in detail_key or 'Add-on' in detail_key or 'Upcharge' in detail_key:
-    #                 print(f"    {detail_key}: {detail_value}")
-    #     elif key == "Total Project Cost":
-    #         print(f"\n{key}: {value}")
-    #     elif key == "Failed Windows" and value['count'] > 0:
-    #         print(f"\nFailed Windows ({value['count']}):")
-    #         for detail in value['details']:
-    #             print(f"  - {detail}")
 
-    print(f"Project Breakdown: {project_breakdown}")
+    def pretty_print_dict(d, indent=0):
+        """Pretty print OrderedDict with proper indentation"""
+        spaces = "  " * indent
+        for key, value in d.items():
+            if isinstance(value, (dict, OrderedDict)):
+                print(f"{spaces}{key}:")
+                pretty_print_dict(value, indent + 1)
+            else:
+                print(f"{spaces}{key}: {value}")
+    
+    print("\nProject Breakdown:")
+    pretty_print_dict(project_breakdown)

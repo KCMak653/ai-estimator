@@ -7,9 +7,10 @@ import os
 
 
 class ProjectQuoter:
-    def __init__(self, model_name: str, pricing_config_path: str = "valid_config_generator/pricing.conf"):
+    def __init__(self, model_name: str, pricing_config_path: str = "valid_config_generator/pricing.conf", debug = False):
         self.pricing_config_path = pricing_config_path
         self.model_name = model_name
+        self.debug = debug
         
     def cleanup_temp_files(self, num_windows: int) -> None:
         """Clean up temporary config files"""
@@ -73,7 +74,8 @@ class ProjectQuoter:
         project_breakdown['Quoted Windows'] = len(free_text_descriptions)
         
         # Clean up temp files
-        self.cleanup_temp_files(len(free_text_descriptions))
+        if self.debug == False:
+            self.cleanup_temp_files(len(free_text_descriptions))
         
         return total_cost, self.format_json(project_breakdown)
     

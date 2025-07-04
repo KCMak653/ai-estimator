@@ -15,6 +15,9 @@ SH: Single hung
 Finishes:
 W: White
 
+Sidings:
+jamb = casing
+
 
 Industry conventions:
 
