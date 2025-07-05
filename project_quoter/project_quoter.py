@@ -22,7 +22,7 @@ class ProjectQuoter:
                 except:
                     pass  # Ignore cleanup errors
             
-    def quote_project(self, free_text_descriptions: List[str]) -> Tuple[float, Dict]:
+    def quote_project(self, window_descriptions: Dict) -> Tuple[float, Dict]:
         """Quote all windows in the project and return total cost and breakdown"""
         failed_configs = []
         
@@ -32,10 +32,12 @@ class ProjectQuoter:
         project_breakdown = {}
         successful_window_num = 0
 
-        # Process each free text description
-        for i, description in enumerate(free_text_descriptions, 1):
+        # Process each window description with quantity
+        for i, (window_key, window_data) in enumerate(window_descriptions.items(), 1):
+            description = window_data['description']
+            quantity = int(window_data['quantity'])
             config_file = f"temp_window_{i}.conf"
-            print(f"\nProcessing window {i}: {description}")
+            print(f"\nProcessing window {i}: {description} (Quantity: {quantity})")
             
             # Generate and validate config
             if config_generator.generate_config(description, config_file):
@@ -49,9 +51,12 @@ class ProjectQuoter:
                         window_key = f"Window {i}"
                         project_breakdown[window_key] = {
                             'cost': window_cost,
-                            'breakdown': window_breakdown
+                            'breakdown': window_breakdown,
+                            'quantity': quantity
                         }
-                        total_cost += window_cost
+                        # Add total cost for this window type (unit cost * quantity)
+                        total_window_cost = window_cost * quantity
+                        total_cost += total_window_cost
                         successful_window_num += 1
                         print(f"✓ Successfully created quote for window {i}")
                 except Exception as e:
@@ -71,11 +76,11 @@ class ProjectQuoter:
             }
             
         project_breakdown['Total Project Cost'] = total_cost
-        project_breakdown['Quoted Windows'] = len(free_text_descriptions)
+        project_breakdown['Quoted Windows'] = len(window_descriptions)
         
         # Clean up temp files
         if self.debug == False:
-            self.cleanup_temp_files(len(free_text_descriptions))
+            self.cleanup_temp_files(len(window_descriptions))
         
         return total_cost, self.format_json(project_breakdown)
     
@@ -94,11 +99,14 @@ class ProjectQuoter:
             window_data = project_breakdown[window_key]
             formatted_window = OrderedDict()
             
-            # Add sf, lf first if they exist in breakdown
+            # Add quantity first, then sf, lf
+            quantity = window_data.get('quantity', 1)
+            formatted_window['Quantity'] = quantity
+            
             breakdown = window_data['breakdown']
             formatted_window['Square Feet'] = f"{breakdown['sf']:.2f}"
             formatted_window['Linear Feet'] = f"{breakdown['lf']:.2f}"
-            print("formatted_window", formatted_window)    
+            
             formatted_breakdown = OrderedDict()
             base_price_key = [k for k in breakdown.keys() if 'Base Price' in k]
             formatted_breakdown[base_price_key[0]] = f"${breakdown[base_price_key[0]]:.2f}"
@@ -116,7 +124,13 @@ class ProjectQuoter:
             
             formatted_window['Cost Breakdown'] = formatted_breakdown
             
-            formatted_window['Window Cost'] = f"${window_data['cost']:.2f}"
+            formatted_window['Window Cost (Single)'] = f"${window_data['cost']:.2f}"
+            
+            # Add Total (Quantity: N) line if quantity > 1
+            quantity = window_data.get('quantity', 1)
+            if quantity > 1:
+                total_cost = window_data['cost'] * quantity
+                formatted_window[f'Window Cost (Quantity: {quantity})'] = f"${total_cost:.2f}"
             
             formatted[window_key] = formatted_window
             print("formatted", formatted)

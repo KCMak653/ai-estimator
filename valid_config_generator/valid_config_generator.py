@@ -12,6 +12,7 @@ class ValidConfigGenerator:
         Return in text the .conf file for inspection
 
         Requirements: 
+        - Anything specified in the text must be included in the config - this includes casing, brickmoulds etc
         - Use only the keys provided in the default .conf file. Do not create your own keys
         - Use only the options listed in the comments inline with the keys. Do not deviate
         - Output must be a flat HOCON config (no nesting).
