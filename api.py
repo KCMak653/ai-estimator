@@ -13,7 +13,26 @@ def quote_project():
     Expected JSON structure:
     {
         "project_name": "My Project",
-        "window_descriptions": ["window 1 description", "window 2 description", ...]
+        "window_descriptions": {
+            "window_1": {
+                "quantity": "2",
+                "description": "casement white vinyl frame",
+                "width": "36",
+                "height": "48"
+            },
+            "window_2": {
+                "quantity": "1", 
+                "description": "double hung energy efficient",
+                "width": "24",
+                "height": "36"
+            },
+            "window_3": {
+                "quantity": "4",
+                "description": "sliding patio door tempered glass",
+                "width": "72",
+                "height": "80"
+            }
+        }
     }
     
     Returns JSON structure:

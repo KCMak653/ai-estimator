@@ -11,6 +11,15 @@ class ProjectQuoter:
         self.pricing_config_path = pricing_config_path
         self.model_name = model_name
         self.debug = debug
+    
+    def format_window_description(self, window_data: Dict) -> str:
+        """Format window data into a description string for config generation"""
+        description = window_data['description']
+        width = window_data['width']
+        height = window_data['height']
+        
+        formatted_description = f"{description}, width: {width}, height: {height}"
+        return formatted_description
         
     def cleanup_temp_files(self, num_windows: int) -> None:
         """Clean up temporary config files"""
@@ -34,19 +43,22 @@ class ProjectQuoter:
 
         # Process each window description with quantity
         for i, (window_key, window_data) in enumerate(window_descriptions.items(), 1):
-            description = window_data['description']
             quantity = int(window_data['quantity'])
+            
+            # Format the window description with width and height
+            formatted_description = self.format_window_description(window_data)
+            
             config_file = f"temp_window_{i}.conf"
-            print(f"\nProcessing window {i}: {description} (Quantity: {quantity})")
+            print(f"\nProcessing window {i}: {formatted_description} (Quantity: {quantity})")
             
             # Generate and validate config
-            if config_generator.generate_config(description, config_file):
+            if config_generator.generate_config(formatted_description, config_file):
                 try:
                     # Create window quoter with generated config
                     window_cost, window_breakdown = WindowQuoter(config_file, self.pricing_config_path).quote_window()
                     if 'Error' in window_breakdown.keys():
                         print(f"✗ Failed to generate price breakdown for window {i}")
-                        failed_configs.append((i, description, "Price breakdown generation failed"))
+                        failed_configs.append((i, formatted_description, "Price breakdown generation failed"))
                     else:
                         window_key = f"Window {i}"
                         project_breakdown[window_key] = {
@@ -61,10 +73,10 @@ class ProjectQuoter:
                         print(f"✓ Successfully created quote for window {i}")
                 except Exception as e:
                     print(f"✗ Failed to create quote for window {i}: {e}")
-                    failed_configs.append((i, description, str(e)))
+                    failed_configs.append((i, formatted_description, str(e)))
             else:
                 print(f"✗ Failed to generate valid config for window {i}")
-                failed_configs.append((i, description, "Config generation failed"))
+                failed_configs.append((i, formatted_description, "Config generation failed"))
         
         
 
