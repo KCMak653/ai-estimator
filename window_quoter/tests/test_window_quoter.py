@@ -2,8 +2,7 @@ import unittest
 import sys
 import os
 import tempfile
-from unittest.mock import patch, MagicMock
-from pyhocon import ConfigFactory
+import yaml
 
 # Add the parent directory to the path so we can import the window_quoter module
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -13,177 +12,186 @@ class TestWindowQuoter(unittest.TestCase):
     def setUp(self):
         """Set up test fixtures before each test method."""
         # Create temporary files for window and pricing configurations
-        self.window_conf = tempfile.NamedTemporaryFile(mode='w', delete=False)
-        self.pricing_conf = tempfile.NamedTemporaryFile(mode='w', delete=False)
+        self.window_conf = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.yaml')
+        self.pricing_conf = tempfile.NamedTemporaryFile(mode='w', delete=False, suffix='.yaml')
         
-        # Write sample window configuration in HOCON format
-        window_config = """
-        # Required
-        window_type = "casement"
-        width = 36
-        height = 48
-
-        # Casement specific settings
-        casement.interior = "white"
-        casement.exterior_color = "standard"
-        casement.stain.interior = false
-        casement.stain.exterior = false
-        casement.hardware.rotto_corner_drive_1_corner = false
-        casement.hardware.rotto_corner_drive_2_corners = false
-        casement.hardware.egress_hardware = false
-        casement.hardware.hinges_add_over_30 = false
-        casement.hardware.limiters = false
-        casement.hardware.encore_system = false
-
-        # Glass settings
-        glass.type = "double"
-        glass.subtype = "lowe_180"
-        glass.thickness_mm = 4
-
-        # Brickmould settings
-        brickmould.include = true
-        brickmould.size = "1_5_8"
-        brickmould.finish = "white"
-        brickmould.include_bay_bow_coupler = false
-        brickmould.include_bay_bow_add_on = false
-
-        # Casing and extension settings
-        casing_extension.type = "vinyl_casing_3_1_2"
-        casing_extension.finish = "white"
-        casing_extension.include_bay_bow_extension = false
-        casing_extension.include_bay_pow_plywood = false
-
-        # Shape settings
-        shapes.type = None
-        shapes.extras.brickmould = true
-        shapes.extras.inside_casing_all_around = false
-        shapes.extras.extension = false
-        """
-        self.window_conf.write(window_config)
+        # Write sample window configuration in YAML format
+        window_config = {
+            "window_type": "casement",
+            "width": 36,
+            "height": 48,
+            "casement": {
+                "interior": "white",
+                "exterior_color": "standard",
+                "stain": {
+                    "interior": False,
+                    "exterior": False
+                },
+                "hardware": {
+                    "rotto_corner_drive_1_corner": False,
+                    "rotto_corner_drive_2_corners": False,
+                    "egress_hardware": False,
+                    "hinges_add_over_30": False,
+                    "limiters": False,
+                    "encore_system": False
+                }
+            },
+            "glass": {
+                "type": "double",
+                "subtype": "lowe_180",
+                "thickness_mm": 4
+            },
+            "brickmould": {
+                "include": True,
+                "size": "1_5_8",
+                "finish": "white",
+                "include_bay_bow_coupler": False,
+                "include_bay_bow_add_on": False
+            },
+            "casing_extension": {
+                "type": "vinyl_casing_3_1_2",
+                "finish": "white",
+                "include_bay_bow_extension": False,
+                "include_bay_pow_plywood": False
+            },
+            "shapes": {
+                "type": None,
+                "extras": {
+                    "brickmould": True,
+                    "inside_casing_all_around": False,
+                    "extension": False
+                }
+            }
+        }
+        yaml.dump(window_config, self.window_conf, default_flow_style=False)
         self.window_conf.close()
         
-        # Write sample pricing configuration in HOCON format
-        pricing_config = """
-        # Casement pricing
-        casement.white = [
-          {max_sf = 6, price = 154.44, over_rate = 0}
-          {max_sf = 9, price = 174.49, over_rate = 0}
-          {max_sf = 12, price = 194.66, over_rate = 16.25}
-        ]
-        casement.interior_paint = [
-          {max_sf = 6, price = 182.89, over_rate = 0}
-          {max_sf = 9, price = 200.79, over_rate = 0}
-          {max_sf = 12, price = 218.80, over_rate = 18.14}
-        ]
-        casement.exterior_color.base_perc = 0.25
-        casement.exterior_color.color_match_add_on = 200
-        casement.stain.interior = 120.00
-        casement.stain.exterior = 90.00
-        casement.rotto_corner_drive_1_corner = 20.00
-        casement.rotto_corner_drive_2_corners = 45.00
-        casement.egress_hardware = 10.00
-        casement.hinges_add_over_30 = 4.00
-        casement.limiters = 10.00
-        casement.encore_system = 10.00
-
-        # Glass pricing
-        glass.double.lowe_180 = [
-          {thickness = 3, price = 2.25}
-          {thickness = 4, price = 2.50}
-          {thickness = 5, price = 4.00}
-          {thickness = 6, price = 9.00}
-        ]
-        glass.double.lowe_272 = [
-          {thickness = 3, price = 2.25}
-          {thickness = 4, price = 2.50}
-          {thickness = 5, price = 4.00}
-          {thickness = 6, price = 9.00}
-        ]
-        glass.double.lowe_366 = [
-          {thickness = 4, price = 3.50}
-          {thickness = 5, price = 5.00}
-        ]
-        glass.double.shaped_add_on = 75.00
-        glass.double.min_size_sf = 6
-
-        glass.triple.clear_clear_clear = [
-          {thickness = 3, price = 4.75}
-          {thickness = 4, price = 7.25}
-          {thickness = 5, price = 9.50}
-        ]
-        glass.triple.lowe_180_clear_clear = [
-          {thickness = 3, price = 6.50}
-          {thickness = 4, price = 9.00}
-          {thickness = 5, price = 15.00}
-        ]
-        glass.triple.lowe_272_clear_clear = [
-          {thickness = 3, price = 6.50}
-          {thickness = 4, price = 9.00}
-          {thickness = 5, price = 15.00}
-        ]
-        glass.triple.shaped_add_on = 100.00
-        glass.triple.min_size_sf = 6
-
-        # Brickmould pricing
-        brickmould.bay_bow_add_on = [100.00, 125.00]
-        brickmould.0.white = 2.06
-        brickmould.0.colour = 3.11
-        brickmould.0.stain = 7.00
-        brickmould.1_5_8.white = 2.57
-        brickmould.1_5_8.colour = 3.62
-        brickmould.1_5_8.stain = 7.00
-        brickmould.2.white = 3.09
-        brickmould.2.colour = 4.14
-        brickmould.2.stain = 7.00
-        brickmould.bay_bow_coupler.white = 3.09
-        brickmould.bay_bow_coupler.colour = 4.14
-        brickmould.bay_bow_coupler.stain = 7.00
-
-        # Casing and extension pricing
-        casing_extension.vinyl_casing_3_1_2.white = 2.55
-        casing_extension.vinyl_casing_3_1_2.colour = 3.55
-        casing_extension.vinyl_casing_3_1_2.stain = 7.55
-        casing_extension.bay_bow_extension = 250
-        casing_extension.bay_bow_plywood = [
-          {max_size = 8, price = 450.00, over_rate = 500.00}
-        ]
-
-        # Shape pricing
-        shapes.half_circle = 200.00
-        shapes.quarter_circle = 200.00
-        shapes.ellipse = 250.00
-        shapes.true_ellipse = 250.00
-        shapes.triangle = 225.00
-        shapes.trapezoid = 225.00
-        shapes.extended_arch = 250.00
-        shapes.brickmould = 75.00
-        shapes.inside_casing_all_around = 75.00
-        shapes.extension = 50.00
-        """
-        self.pricing_conf.write(pricing_config)
+        # Write sample pricing configuration in YAML format
+        pricing_config = {
+            "casement": {
+                "white": [
+                    {"max_sf": 6, "price": 154.44, "over_rate": 0},
+                    {"max_sf": 9, "price": 174.49, "over_rate": 0},
+                    {"max_sf": 12, "price": 194.66, "over_rate": 16.25}
+                ],
+                "interior_paint": [
+                    {"max_sf": 6, "price": 182.89, "over_rate": 0},
+                    {"max_sf": 9, "price": 200.79, "over_rate": 0},
+                    {"max_sf": 12, "price": 218.80, "over_rate": 18.14}
+                ],
+                "exterior_color": {
+                    "base_perc": 0.25,
+                    "color_match_add_on": 200
+                },
+                "stain": {
+                    "interior": 120.00,
+                    "exterior": 90.00
+                },
+                "rotto_corner_drive_1_corner": 20.00,
+                "rotto_corner_drive_2_corners": 45.00,
+                "egress_hardware": 10.00,
+                "hinges_add_over_30": 4.00,
+                "limiters": 10.00,
+                "encore_system": 10.00
+            },
+            "glass": {
+                "double": {
+                    "lowe_180": [
+                        {"thickness": 3, "price": 2.25},
+                        {"thickness": 4, "price": 2.50},
+                        {"thickness": 5, "price": 4.00},
+                        {"thickness": 6, "price": 9.00}
+                    ],
+                    "lowe_272": [
+                        {"thickness": 3, "price": 2.25},
+                        {"thickness": 4, "price": 2.50},
+                        {"thickness": 5, "price": 4.00},
+                        {"thickness": 6, "price": 9.00}
+                    ],
+                    "lowe_366": [
+                        {"thickness": 4, "price": 3.50},
+                        {"thickness": 5, "price": 5.00}
+                    ],
+                    "shaped_add_on": 75.00,
+                    "min_size_sf": 6
+                },
+                "triple": {
+                    "clear_clear_clear": [
+                        {"thickness": 3, "price": 4.75},
+                        {"thickness": 4, "price": 7.25},
+                        {"thickness": 5, "price": 9.50}
+                    ],
+                    "lowe_180_clear_clear": [
+                        {"thickness": 3, "price": 6.50},
+                        {"thickness": 4, "price": 9.00},
+                        {"thickness": 5, "price": 15.00}
+                    ],
+                    "lowe_272_clear_clear": [
+                        {"thickness": 3, "price": 6.50},
+                        {"thickness": 4, "price": 9.00},
+                        {"thickness": 5, "price": 15.00}
+                    ],
+                    "shaped_add_on": 100.00,
+                    "min_size_sf": 6
+                }
+            },
+            "brickmould": {
+                "bay_bow_add_on": [100.00, 125.00],
+                "0": {
+                    "white": 2.06,
+                    "colour": 3.11,
+                    "stain": 7.00
+                },
+                "1_5_8": {
+                    "white": 2.57,
+                    "colour": 3.62,
+                    "stain": 7.00
+                },
+                "2": {
+                    "white": 3.09,
+                    "colour": 4.14,
+                    "stain": 7.00
+                },
+                "bay_bow_coupler": {
+                    "white": 3.09,
+                    "colour": 4.14,
+                    "stain": 7.00
+                }
+            },
+            "casing_extension": {
+                "vinyl_casing_3_1_2": {
+                    "white": 2.55,
+                    "colour": 3.55,
+                    "stain": 7.55
+                },
+                "bay_bow_extension": 250,
+                "bay_bow_plywood": [
+                    {"max_size": 8, "price": 450.00, "over_rate": 500.00}
+                ]
+            },
+            "shapes": {
+                "half_circle": 200.00,
+                "quarter_circle": 200.00,
+                "ellipse": 250.00,
+                "true_ellipse": 250.00,
+                "triangle": 225.00,
+                "trapezoid": 225.00,
+                "extended_arch": 250.00,
+                "brickmould": 75.00,
+                "inside_casing_all_around": 75.00,
+                "extension": 50.00
+            }
+        }
+        yaml.dump(pricing_config, self.pricing_conf, default_flow_style=False)
         self.pricing_conf.close()
         
-        # Mock the ConfigFactory.parse_file method
-        self.patcher = patch('pyhocon.ConfigFactory.parse_file')
-        self.mock_parse_file = self.patcher.start()
-        
-        def mock_parse_file_side_effect(file_path):
-            if file_path == "window.conf":
-                return ConfigFactory.parse_string(window_config)
-            elif file_path == "pricing.conf":
-                return ConfigFactory.parse_string(pricing_config)
-            return None
-        
-        self.mock_parse_file.side_effect = mock_parse_file_side_effect
-        
-        # Initialize the WindowQuoter with the mock configuration
-        self.quoter = WindowQuoter("dummy_config_path")
+        # Initialize the WindowQuoter with the temporary YAML files
+        self.quoter = WindowQuoter(self.window_conf.name, self.pricing_conf.name)
 
     def tearDown(self):
         """Clean up after each test method."""
         os.unlink(self.window_conf.name)
         os.unlink(self.pricing_conf.name)
-        self.patcher.stop()
 
     def test_initialization(self):
         """Test the initialization of the WindowQuoter class."""

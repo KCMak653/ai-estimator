@@ -1,6 +1,4 @@
-from pyhocon import ConfigMissingException
-
-def getOrReturnNone(config, key_path):
+def getOrReturnNoneYaml(config, key_path):
     """
     Safely access a configuration key path, returning None if any part of the path doesn't exist.
     Also converts string "None" to actual None type.
@@ -12,11 +10,20 @@ def getOrReturnNone(config, key_path):
     Returns:
         The value at the specified key path, or None if any part of the path doesn't exist
     """
-    try:
-        value = config.get(key_path)
-        # Convert string "None" to actual None for proper type handling
-        if value == "None":
-            return None
-        return value
-    except ConfigMissingException:
-        return None
+    keys = key_path.split(".")
+    return getKey(config, keys)
+    
+def getKey(dic, key_list):
+    if len(key_list) == 1:
+        return dic.get(key_list[0])
+    else:
+        return getKey(dic.get(key_list[0], {}), key_list[1:])
+    
+
+if __name__ == "__main__":
+    print(getKey({"a":{"c":{"d":"1235"}}}, ["a", "c", "f"]))
+
+    # {"a":{"c":{"d"}}} [a,b,c]
+    # dic.get(a)[b,c]
+
+    # dict[a][c], [d]

@@ -1,21 +1,23 @@
 # Required
-window_type='casement' # @Required Enum: casement, awning, picture_window, fixed_casement
-width = 26 # in inches @Required
-height = 36 # in inches @Required
+window_type: 'casement' # @Required Enum: casement, awning, picture_window, fixed_casement
+width: 26 # in inches @Required
+height: 36 # in inches @Required
 
 
 ################################################
 # Casement
 # Omit if window_type != 'casement'
-casement.interior = "white"  # options: "white" (default), "color", "stain" @Required
-casement.exterior = "white" # options: "white" (default), "color", "custom_color", "stain" @Required
-
-casement.hardware.rotto_corner_drive_1_corner = false # @Optional
-casement.hardware.rotto_corner_drive_2_corners = false # @Optional
-casement.hardware.egress_hardware = false # @Optional
-casement.hardware.hinges_add_over_30 = false # @Optional
-casement.hardware.limiters = false # @Optional
-casement.hardware.encore_system = false # @Optional
+casement:
+  interior: "white"  # options: "white" (default), "color", "stain" @Required
+  exterior: "white" # options: "white" (default), "color", "custom_color", "stain" @Required
+  
+  hardware:
+    rotto_corner_drive_1_corner: false # @Optional
+    rotto_corner_drive_2_corners: false # @Optional
+    egress_hardware: false # @Optional
+    hinges_add_over_30: false # @Optional
+    limiters: false # @Optional
+    encore_system: false # @Optional
 ################################################
 
 
@@ -23,10 +25,12 @@ casement.hardware.encore_system = false # @Optional
 ################################################
 # Awning
 # Omit if window_type != 'awning'
-awning.interior = "white"  # options: "white" (default), "color", "stain" @Required
-awning.exterior = "white" # options: "white" (default), "color", "custom_color", "stain" @Required
-awning.hardware.encore_system = false # @Optional
-awning.hardware.limiters = false # @Optional
+awning:
+  interior: "white"  # options: "white" (default), "color", "stain" @Required
+  exterior: "white" # options: "white" (default), "color", "custom_color", "stain" @Required
+  hardware:
+    encore_system: false # @Optional
+    limiters: false # @Optional
 ################################################
 
 
@@ -34,8 +38,9 @@ awning.hardware.limiters = false # @Optional
 ################################################
 # Fixed casement
 # Omit if window_type != 'fixed_casement'
-fixed_casement.interior = "white"  # options: "white" (default), "color", "stain" @Required
-fixed_casement.exterior = "white" # options: "white" (default), "color", "custom_color", "stain" @Required
+fixed_casement:
+  interior: "white"  # options: "white" (default), "color", "stain" @Required
+  exterior: "white" # options: "white" (default), "color", "custom_color", "stain" @Required
 ################################################
 
 
@@ -43,8 +48,9 @@ fixed_casement.exterior = "white" # options: "white" (default), "color", "custom
 ################################################
 # Picture Window
 # Omit if window_type != 'picture_window'
-picture_window.interior = "white"  # options: "white" (default), "color", "stain" @Required
-picture_window.exterior = "white" # options: "white" (default), "color", "custom_color", "stain" @Required
+picture_window:
+  interior: "white"  # options: "white" (default), "color", "stain" @Required
+  exterior: "white" # options: "white" (default), "color", "custom_color", "stain" @Required
 ################################################
 
 
@@ -52,7 +58,8 @@ picture_window.exterior = "white" # options: "white" (default), "color", "custom
 ################################################
 # Single slider tilt/lift-out
 # Omit if window_type != 'single_slider'
-single_slider.exterior = "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
+single_slider:
+  exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
 ################################################
 
 
@@ -62,7 +69,8 @@ single_slider.exterior = "white"  # options: "white" (default), "color", "custom
 # Omit if window_type != 'single_hung'
 # interior color is fixed: white only
 # interior stain not available
-single_hung.exterior = "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
+single_hung:
+  exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
 ################################################
 
 
@@ -72,7 +80,8 @@ single_hung.exterior = "white"  # options: "white" (default), "color", "custom_c
 # Omit if window_type != 'double_end_slider'
 # interior color is fixed: white only
 # interior stain not available
-double_end_slider.exterior = "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
+double_end_slider:
+  exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
 ################################################
 
 
@@ -82,7 +91,8 @@ double_end_slider.exterior = "white"  # options: "white" (default), "color", "cu
 # Omit if window_type != 'double_hung'
 # interior color is fixed: white only
 # interior stain not available
-double_hung.exterior = "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
+double_hung:
+  exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
 ################################################
 
 
@@ -92,20 +102,23 @@ double_hung.exterior = "white"  # options: "white" (default), "color", "custom_c
 # Omit if window_type != 'double_slider'
 # interior color is fixed: white only
 # interior stain not available
-double_slider.exterior = "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
+double_slider:
+  exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
 ################################################
 
 
 
 # Shapes
 # shapes.type can be one of:
-# If no shape specified, set as None (rectangular window)
+# If no shape specified, set as null (rectangular window)
 # "half_circle", "quarter_circle", "ellipse", "true_ellipse", "triangle", "trapezoid", "extended_arch"
-shapes.type = None  # or one of the above @Optional
-
-shapes.extras.brickmould = false # @Optional
-shapes.extras.inside_casing_all_around = false # @Optional
-shapes.extras.extension = false # @Optional
+shapes:
+  type: null  # or one of the above @Optional
+  
+  extras:
+    brickmould: false # @Optional
+    inside_casing_all_around: false # @Optional
+    extension: false # @Optional
 
 # Glass pg 19-20
 
@@ -130,16 +143,18 @@ shapes.extras.extension = false # @Optional
 # lowe_272_tint_various, lowe_180_tint_various
 
 
-glass.type = "double" # or "triple" @Required
-glass.subtype = "lowe_180" # Default: lowe_180 for glass.type="double", Default: lowe_180_clear_clear for glass.type="triple" @Required 
-glass.thickness_mm = 4 # Default: 4 @Required
+glass:
+  type: "double" # or "triple" @Required
+  subtype: "lowe_180" # Default: lowe_180 for glass.type="double", Default: lowe_180_clear_clear for glass.type="triple" @Required 
+  thickness_mm: 4 # Default: 4 @Required
 
 # pg 18 brickmoulds & couplers
-brickmould.include = false # @Optional
-brickmould.size = "1_5_8"  # options: "0", "5_8", "1_1_4", "1_5_8", "2" @Optional
-brickmould.finish = "white"  # Default: white Options: "white", "colour", "stain" @Optional
-brickmould.include_bay_bow_coupler = false # @Optional
-brickmould.include_bay_bow_add_on = false  # $100–$125 extra @Optional
+brickmould:
+  include: false # @Optional
+  size: "1_5_8"  # options: "0", "5_8", "1_1_4", "1_5_8", "2" @Optional
+  finish: "white"  # Default: white Options: "white", "colour", "stain" @Optional
+  include_bay_bow_coupler: false # @Optional
+  include_bay_bow_add_on: false  # $100–$125 extra @Optional
 
 # pg 19 interior options
 # These settings refer to the extension and casing interior options. Not interior related to the
@@ -159,7 +174,8 @@ brickmould.include_bay_bow_add_on = false  # $100–$125 extra @Optional
 # vinyl_pkg_1_3_8_casing_step_2_3_4, vinyl_pkg_2_3_8_casing_step_2_3_4, vinyl_pkg_3_3_8_casing_step_2_3_4, vinyl_pkg_4_5_8_casing_step_2_3_4,
 # vinyl_pkg_1_3_8_casing_step_3_1_2, vinyl_pkg_2_3_8_casing_step_3_1_2, vinyl_pkg_3_3_8_casing_step_3_1_2, vinyl_pkg_4_5_8_casing_step_3_1_2
 
-casing_extension.type = None # @Optional
-casing_extension.finish = "white" # or "stain" or "colour" @Optional
-casing_extension.include_bay_bow_extension = false # @Optional
-casing_extension.include_bay_pow_plywood = false # @Optional
+casing_extension:
+  type: null # @Optional
+  finish: "white" # or "stain" or "colour" @Optional
+  include_bay_bow_extension: false # @Optional
+  include_bay_pow_plywood: false # @Optional

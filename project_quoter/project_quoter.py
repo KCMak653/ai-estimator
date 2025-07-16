@@ -7,7 +7,7 @@ import os
 
 
 class ProjectQuoter:
-    def __init__(self, model_name: str, pricing_config_path: str = "valid_config_generator/pricing.conf", debug = False):
+    def __init__(self, model_name: str, pricing_config_path: str = "valid_config_generator/pricing.yaml", debug = False):
         self.pricing_config_path = pricing_config_path
         self.model_name = model_name
         self.debug = debug
@@ -29,7 +29,7 @@ class ProjectQuoter:
     def cleanup_temp_files(self, num_windows: int) -> None:
         """Clean up temporary config files"""
         for i in range(1, num_windows + 1):
-            temp_file = f"temp_window_{i}.conf"
+            temp_file = f"temp_window_{i}.yaml"
             if os.path.exists(temp_file):
                 try:
                     os.remove(temp_file)
@@ -39,7 +39,7 @@ class ProjectQuoter:
     def quote_project(self, project_dict: Dict) -> Tuple[float, Dict]:
         """Quote all windows in the project and return total cost and breakdown"""
         failed_configs = []
-        
+        print(project_dict)
         # Extract window descriptions and project description
         window_descriptions = project_dict['window_descriptions']
         project_description = project_dict.get('project_description')
@@ -57,7 +57,7 @@ class ProjectQuoter:
             # Format the window description with width, height, and project description
             formatted_description = self.format_window_description(window_data, project_description)
             
-            config_file = f"temp_window_{i}.conf"
+            config_file = f"temp_window_{i}.yaml"
             print(f"\nProcessing window {i}: {formatted_description} (Quantity: {quantity})")
             
             # Generate and validate config

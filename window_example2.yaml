@@ -1,0 +1,32 @@
+window_type: "picture_window"
+width: 50
+height: 36
+
+picture_window:
+  interior: "stain"
+  exterior: "white"
+
+shapes:
+  type: "half_circle"
+  extras:
+    brickmould: false
+    inside_casing_all_around: false
+    extension: false
+
+glass:
+  type: "triple"
+  subtype: "lowe_180_clear_clear"
+  thickness_mm: 4
+
+brickmould:
+  include: false
+  size: "2"
+  finish: "colour"
+  include_bay_bow_coupler: false
+  include_bay_bow_add_on: false
+
+casing_extension:
+  type: "vinyl_casing_3_1_2"
+  finish: "stain"
+  include_bay_bow_extension: false
+  include_bay_pow_plywood: false

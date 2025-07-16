@@ -1,8 +1,7 @@
 import unittest
 import sys
 import os
-from pyhocon import ConfigFactory
-from pyhocon.exceptions import ConfigMissingException
+import yaml
 
 # Add the parent directory to the path so we can import the helper_funcs module
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -86,17 +85,19 @@ class TestHelperFuncs(unittest.TestCase):
 
     def test_get_base_price(self):
         """Test the get_base_price function"""
-        # Create a mock pricing config
-        pricing_config = ConfigFactory.parse_string("""
-            casement.white = [
-              {max_sf = 10, price = 100, over_rate = 0}
-              {max_sf = 20, price = 150, over_rate = 10}
-            ]
-            casement.paint = [
-              {max_sf = 10, price = 120, over_rate = 0}
-              {max_sf = 20, price = 180, over_rate = 12}
-            ]
-        """)
+        # Create a mock pricing config in YAML format
+        pricing_config = {
+            "casement": {
+                "white": [
+                    {"max_sf": 10, "price": 100, "over_rate": 0},
+                    {"max_sf": 20, "price": 150, "over_rate": 10}
+                ],
+                "paint": [
+                    {"max_sf": 10, "price": 120, "over_rate": 0},
+                    {"max_sf": 20, "price": 180, "over_rate": 12}
+                ]
+            }
+        }
         # Test with valid inputs
         self.assertEqual(get_base_price("casement", "white", pricing_config, 5), 100)
         self.assertEqual(get_base_price("casement", "white", pricing_config, 15), 150)
