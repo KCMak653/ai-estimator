@@ -35,21 +35,28 @@ class ValidConfigGenerator:
     """
 
 
-    def __init__(self, model_name):
+    def __init__(self, model_name, debug = False, num_retries=2):
         self.model = ModelIO("openai", model_name, self.generate_prompt())
         self.config_validator = ConfigValidator()
+        self.debug = debug
+        self.num_retries = num_retries
     
     def generate_prompt(self, default_conf=default_conf, additional_context=additional_context):
         return self.prompt_instructions.format(default_conf=default_conf, additional_context=additional_context)
 
-    def generate_config(self, free_text, file_path):
-        max_count = 2 # max number of times to try to generate a valid config
+    def generate_config(self, free_text, debug_file_path = ""):
         response = self.model.get_response(free_text)
-        self.write_yaml_to_file(response, file_path)
-        errs, warnings = self.validate_config(file_path)
+        if self.debug:
+            self.write_yaml_to_file(response, debug_file_path)
+        try:
+            config = yaml.safe_load(response)
+            errs, warnings = self.validate_config(config)
+        except yaml.YAMLError as e:
+            errs = True
+            warnings = [f"Could not create dict using yaml.safe_load(), reconstruct response to be in yaml format: {e}"] 
         free_window_config = free_text
         i = 0
-        while errs and i < max_count:
+        while errs and i < self.num_retries:
             free_window_config = f"The config {free_text} was provided but the following was invalid. Fix the errors and return the full config: {warnings}"
             print(f"sending prompt: {free_window_config}")
             response = self.model.get_response(free_window_config)
@@ -57,20 +64,26 @@ class ValidConfigGenerator:
                 print("Did not receive a response")
                 errs = True
             else:
-                self.write_yaml_to_file(response, file_path)
-                errs, warnings = self.validate_config(file_path)
+                if self.debug:
+                    self.write_yaml_to_file(response, debug_file_path)
+                try:
+                    config = yaml.safe_load(response)
+                    errs, warnings = self.validate_config(config)
+                except yaml.YAMLError as e:
+                    errs = True
+                    warnings = [f"Could not create dict using yaml.safe_load(), reconstruct response to be in yaml format: {e}"]         
             i += 1
         
         if errs: 
-            print(f"Failed to generate a valid config after {max_count} attempts")
+            print(f"Failed to generate a valid config after {self.num_retries} attempts")
             print(f"Errors: {errs}")
             print(f"Warnings: {warnings}")
-            return False
-        return True
+            return {}
+        return config
 
     def write_yaml_to_file(self, config_string, file_path='window_example.yaml'):
         """
-        Write a YAML configuration string directly to a file.
+        Write a YAML configuration string directly to a file. For debugging mode only.
         
         Args:
             config_string (str): The YAML configuration string
@@ -115,9 +128,8 @@ class ValidConfigGenerator:
         
         return cleaned_config
 
-    def validate_config(self, file_path):
-        with open(file_path, 'r') as f:
-            config = yaml.safe_load(f)
+    def validate_config(self, config: str):
+
         errs, warnings = self.config_validator.validate(config)
         return errs, warnings
 

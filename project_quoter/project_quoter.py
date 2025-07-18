@@ -45,7 +45,7 @@ class ProjectQuoter:
         project_description = project_dict.get('project_description')
         
         # Initialize the config generator
-        config_generator = ValidConfigGenerator(self.model_name)
+        config_generator = ValidConfigGenerator(self.model_name, debug=self.debug)
         total_cost = 0.0
         project_breakdown = {}
         successful_window_num = 0
@@ -61,10 +61,11 @@ class ProjectQuoter:
             print(f"\nProcessing window {i}: {formatted_description} (Quantity: {quantity})")
             
             # Generate and validate config
-            if config_generator.generate_config(formatted_description, config_file):
+            config = config_generator.generate_config(formatted_description, debug_file_path=config_file)
+            if config:
                 try:
                     # Create window quoter with generated config
-                    window_cost, window_breakdown = WindowQuoter(config_file, self.pricing_config_path).quote_window()
+                    window_cost, window_breakdown = WindowQuoter(config, self.pricing_config_path).quote_window()
                     if 'Error' in window_breakdown.keys():
                         print(f"✗ Failed to generate price breakdown for window {i}")
                         failed_configs.append((i, formatted_description, "Price breakdown generation failed"))

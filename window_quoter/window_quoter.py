@@ -2,9 +2,8 @@ from window_quoter.helper_funcs import *
 import yaml
 
 class WindowQuoter:
-    def __init__(self, window_config_path, pricing_config_path):
-        with open(window_config_path, "r") as file:
-            self.window_config = yaml.safe_load(file)
+    def __init__(self, window_config, pricing_config_path):
+        self.window_config = window_config
         with open(pricing_config_path, "r") as file:
             self.pricing_config = yaml.safe_load(file)
         self.width = self.window_config.get('width')
