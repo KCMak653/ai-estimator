@@ -1,0 +1,627 @@
+casement:
+  white:
+    - max_sf: 6
+      price: 154.44
+      over_rate: 0
+    - max_sf: 9
+      price: 174.49
+      over_rate: 0
+    - max_sf: 12
+      price: 194.66
+      over_rate: 16.25
+  color:
+    - max_sf: 6
+      price: 182.89
+      over_rate: 0
+    - max_sf: 9
+      price: 200.79
+      over_rate: 0
+    - max_sf: 12
+      price: 218.80
+      over_rate: 18.14
+  exterior:
+    color_base_perc: 0.25
+    custom_color_add_on: 200
+    stain_add_on: 90.00
+  interior:
+    stain_add_on: 120.00
+  rotto_corner_drive_1_corner: 20.00
+  rotto_corner_drive_2_corners: 45.00
+  egress_hardware: 10.00
+  hinges_add_over_30: 4.00
+  limiters: 10.00
+  encore_system: 10.00
+
+awning:
+  white:
+    - max_sf: 6
+      price: 166.19
+      over_rate: 0
+    - max_sf: 9
+      price: 186.36
+      over_rate: 0
+    - max_sf: 12
+      price: 206.53
+      over_rate: 17.70
+  color:
+    - max_sf: 6
+      price: 198.38
+      over_rate: 0
+    - max_sf: 9
+      price: 216.39
+      over_rate: 0
+    - max_sf: 12
+      price: 234.40
+      over_rate: 19.75
+  exterior:
+    color_base_perc: 0.25
+    custom_color_add_on: 200
+    stain_add_on: 90.00
+  interior:
+    stain_add_on: 140.00
+  encore_system: 10.00
+  limiters: 10.00
+
+fixed_casement:
+  white:
+    - max_sf: 7
+      price: 97.33
+      over_rate: 13.67
+  color:
+    - max_sf: 7
+      price: 116.90
+      over_rate: 15.25
+  exterior:
+    color_base_perc: 0.25
+    custom_color_add_on: 200
+    stain_add_on: 50.00
+  interior:
+    stain_add_on: 70.00
+
+picture_window:
+  white:
+    - max_sf: 7
+      price: 87.44
+      over_rate: 12.58
+  color:
+    - max_sf: 7
+      price: 107.38
+      over_rate: 13.92
+  exterior:
+    color_base_perc: 0.25
+    custom_color_add_on: 200
+    stain_add_on: 50.00
+  interior:
+    stain_add_on: 70.00
+
+single_slider:
+  white:
+    - max_sf: 6
+      price: 127.00
+      over_rate: 0
+    - max_sf: 9
+      price: 142.44
+      over_rate: 0
+    - max_sf: 12
+      price: 157.89
+      over_rate: 12.24
+  exterior:
+    color_base_perc: 0.25
+    custom_color_add_on: 200
+    stain_add_on: 60.00
+
+single_hung:
+  white:
+    - max_sf: 6
+      price: 134.15
+      over_rate: 0
+    - max_sf: 9
+      price: 150.74
+      over_rate: 0
+    - max_sf: 12
+      price: 167.37
+      over_rate: 13.84
+  exterior:
+    color_base_perc: 0.25
+    custom_color_add_on: 200
+    stain_add_on: 60.00
+
+double_end_slider:
+  white:
+    - max_sf: 14
+      price: 205.37
+      over_rate: 14.66
+  exterior:
+    color_base_perc: 0.25
+    custom_color_add_on: 200
+    stain_add_on: 90.00
+
+double_hung:
+  white:
+    - max_sf: 6
+      price: 132.48
+      over_rate: 0
+    - max_sf: 9
+      price: 148.38
+      over_rate: 0
+    - max_sf: 12
+      price: 164.28
+      over_rate: 13.69
+  exterior:
+    color_base_perc: 0.25
+    custom_color_add_on: 200
+    stain_add_on: 90.00
+
+double_slider:
+  white:
+    - max_sf: 6
+      price: 129.31
+      over_rate: 0
+    - max_sf: 9
+      price: 142.02
+      over_rate: 0
+    - max_sf: 12
+      price: 154.74
+      over_rate: 12.93
+  exterior:
+    color_base_perc: 0.25
+    custom_color_add_on: 200
+    stain_add_on: 90.00
+
+shapes:
+  half_circle: 200.00
+  quarter_circle: 200.00
+  ellipse: 250.00
+  true_ellipse: 250.00
+  triangle: 225.00
+  trapezoid: 225.00
+  extended_arch: 250.00
+  brickmould: 75.00
+  inside_casing_all_around: 75.00
+  extension: 50.00
+
+glass:
+  double:
+    lowe_180:
+      - thickness: 3
+        price: 5.50
+      - thickness: 4
+        price: 6.00
+      - thickness: 5
+        price: 10.00
+      - thickness: 6
+        price: 15.00
+    lowe_272:
+      - thickness: 3
+        price: 2.25
+      - thickness: 4
+        price: 2.50
+      - thickness: 5
+        price: 4.00
+      - thickness: 6
+        price: 9.00
+    lowe_366:
+      - thickness: 4
+        price: 3.50
+      - thickness: 5
+        price: 5.00
+    frosted_pinhead:
+      - thickness: 3
+        price: 1.75
+      - thickness: 5
+        price: 3.50
+    lowe_180_pinhead:
+      - thickness: 3
+        price: 4.00
+      - thickness: 4
+        price: 4.75
+      - thickness: 5
+        price: 6.50
+    lowe_272_pinhead:
+      - thickness: 3
+        price: 4.00
+      - thickness: 4
+        price: 4.75
+      - thickness: 5
+        price: 6.50
+    lowe_180_neat:
+      - thickness: 3
+        price: 3.00
+      - thickness: 4
+        price: 3.00
+      - thickness: 5
+        price: 6.00
+      - thickness: 6
+        price: 11.00
+    lowe_272_neat:
+      - thickness: 3
+        price: 3.00
+      - thickness: 4
+        price: 3.00
+      - thickness: 5
+        price: 6.00
+      - thickness: 6
+        price: 11.00
+    privacy:
+      - thickness: 4
+        price: 8.00
+      - thickness: 5
+        price: 15.00
+    lowe_180_privacy:
+      - thickness: 3
+        price: 10.25
+      - thickness: 4
+        price: 11.00
+      - thickness: 5
+        price: 19.00
+    lowe_272_privacy:
+      - thickness: 3
+        price: 10.25
+      - thickness: 4
+        price: 11.00
+      - thickness: 5
+        price: 19.00
+    lowe_i89:
+      - thickness: 3
+        price: 5.50
+      - thickness: 4
+        price: 6.00
+      - thickness: 5
+        price: 10.00
+      - thickness: 6
+        price: 15.00
+    tinted_clear:
+      - thickness: 5
+        price: 8.50
+    tinted_lowe_180:
+      - thickness: 5
+        price: 12.00
+    tinted_lowe_272:
+      - thickness: 5
+        price: 12.00
+    laminated_clear:
+      - thickness: 4
+        price: 13.00
+      - thickness: 5
+        price: 15.00
+      - thickness: 6
+        price: 18.00
+    laminated_lowe_180:
+      - thickness: 4
+        price: 15.50
+      - thickness: 5
+        price: 19.00
+      - thickness: 6
+        price: 27.00
+    laminated_lowe_272:
+      - thickness: 4
+        price: 15.50
+      - thickness: 5
+        price: 19.00
+      - thickness: 6
+        price: 27.00
+    laminated_laminated:
+      - thickness: 6
+        price: 22.00
+    tempered_clear:
+      - thickness: 4
+        price: 15.00
+      - thickness: 5
+        price: 17.00
+      - thickness: 6
+        price: 20.00
+    tempered_lowe_180:
+      - thickness: 4
+        price: 17.50
+      - thickness: 5
+        price: 21.00
+      - thickness: 6
+        price: 29.00
+    tempered_lowe_272:
+      - thickness: 4
+        price: 17.50
+      - thickness: 5
+        price: 21.00
+      - thickness: 6
+        price: 29.00
+    shaped_add_on: 75.00
+    min_size_sf: 6
+  triple:
+    clear_clear_clear:
+      - thickness: 3
+        price: 4.75
+      - thickness: 4
+        price: 7.25
+      - thickness: 5
+        price: 9.50
+    frosted_clear_clear:
+      - thickness: 3
+        price: 6.50
+      - thickness: 4
+        price: 9.00
+      - thickness: 5
+        price: 11.00
+    lowe_180_clear_clear:
+      - thickness: 3
+        price: 6.50
+      - thickness: 4
+        price: 9.00
+      - thickness: 5
+        price: 15.00
+    lowe_272_clear_clear:
+      - thickness: 3
+        price: 6.50
+      - thickness: 4
+        price: 9.00
+      - thickness: 5
+        price: 15.00
+    lowe_366_clear_clear:
+      - thickness: 3
+        price: 7.25
+      - thickness: 4
+        price: 9.75
+      - thickness: 5
+        price: 16.00
+    lowe_180_clear_lowe_366:
+      - thickness: 3
+        price: 9.00
+      - thickness: 4
+        price: 11.50
+      - thickness: 5
+        price: 16.25
+    lowe_180_clear_lowe_180:
+      - thickness: 3
+        price: 7.00
+      - thickness: 4
+        price: 9.50
+      - thickness: 5
+        price: 16.25
+    lowe_272_clear_lowe_272:
+      - thickness: 3
+        price: 7.00
+      - thickness: 4
+        price: 9.50
+      - thickness: 5
+        price: 16.25
+    lowe_180_lowe_180_i89:
+      - thickness: 3
+        price: 10.25
+      - thickness: 4
+        price: 14.00
+      - thickness: 5
+        price: 20.25
+    lowe_272_clear_frosted:
+      - thickness: 3
+        price: 8.25
+      - thickness: 4
+        price: 10.75
+      - thickness: 5
+        price: 16.25
+    lowe_180_clear_frosted:
+      - thickness: 3
+        price: 8.25
+      - thickness: 4
+        price: 10.75
+      - thickness: 5
+        price: 16.25
+    lowe_272_clear_delta_frost:
+      - thickness: 3
+        price: 12.50
+      - thickness: 4
+        price: 16.50
+      - thickness: 5
+        price: 25.00
+    lowe_180_clear_delta_frost:
+      - thickness: 3
+        price: 12.50
+      - thickness: 4
+        price: 16.50
+      - thickness: 5
+        price: 25.00
+    lowe_272_clear_taffeta:
+      - thickness: 3
+        price: 12.50
+      - thickness: 4
+        price: 16.50
+      - thickness: 5
+        price: 25.00
+    lowe_180_clear_taffeta:
+      - thickness: 3
+        price: 12.50
+      - thickness: 4
+        price: 16.50
+      - thickness: 5
+        price: 25.00
+    lowe_272_clear_everglade:
+      - thickness: 3
+        price: 12.50
+      - thickness: 4
+        price: 16.50
+      - thickness: 5
+        price: 25.00
+    lowe_180_clear_everglade:
+      - thickness: 3
+        price: 12.50
+      - thickness: 4
+        price: 16.50
+      - thickness: 5
+        price: 25.00
+    lowe_272_clear_acid_edge:
+      - thickness: 3
+        price: 12.50
+      - thickness: 4
+        price: 16.50
+      - thickness: 5
+        price: 25.00
+    lowe_180_clear_acid_edge:
+      - thickness: 3
+        price: 12.50
+      - thickness: 4
+        price: 16.50
+      - thickness: 5
+        price: 25.00
+    lowe_272_tint_various:
+      - thickness: 3
+        price: 13.55
+    lowe_180_tint_various:
+      - thickness: 3
+        price: 13.55
+    shaped_add_on: 100.00
+    min_size_sf: 6
+
+brickmould:
+  bay_bow_add_on: [100.00, 125.00]
+  "0":
+    white: 2.06
+    colour: 3.11
+    stain: 7.00
+  "5_8":
+    white: 2.06
+    colour: 3.11
+    stain: 7.00
+  "1_1_4":
+    white: 2.06
+    colour: 3.11
+    stain: 7.00
+  "1_5_8":
+    white: 2.57
+    colour: 3.62
+    stain: 7.00
+  "2":
+    white: 3.09
+    colour: 4.14
+    stain: 7.00
+  bay_bow_coupler:
+    white: 3.09
+    colour: 4.14
+    stain: 7.00
+
+casing_extension:
+  wood_return:
+    white: 1.54
+    colour: 2.59
+    stain: 4.29
+  vinyl_pkg_1_3_8_casing_2_3_4:
+    white: 4.12
+    colour: 6.00
+    stain: 10.00
+  vinyl_pkg_2_3_8_casing_2_3_4:
+    white: 4.12
+    colour: 6.00
+    stain: 10.00
+  vinyl_pkg_3_3_8_casing_2_3_4:
+    white: 4.12
+    colour: 6.00
+    stain: 10.00
+  vinyl_pkg_4_5_8_casing_2_3_4:
+    white: 4.63
+    colour: 6.50
+    stain: 10.50
+  vinyl_pkg_1_3_8_casing_3_1_2:
+    white: 4.89
+    colour: 6.75
+    stain: 11.00
+  vinyl_pkg_2_3_8_casing_3_1_2:
+    white: 4.89
+    colour: 6.75
+    stain: 11.00
+  vinyl_pkg_3_3_8_casing_3_1_2:
+    white: 4.89
+    colour: 6.75
+    stain: 11.00
+  vinyl_pkg_4_5_8_casing_3_1_2:
+    white: 5.40
+    colour: 7.40
+    stain: 12.00
+  vinyl_ext_1_3_8:
+    white: 2.88
+    colour: 3.94
+    stain: 6.80
+  vinyl_ext_2_3_8:
+    white: 2.88
+    colour: 3.94
+    stain: 6.80
+  vinyl_ext_3_3_8:
+    white: 2.88
+    colour: 3.94
+    stain: 6.80
+  vinyl_ext_4_5_8:
+    white: 3.40
+    colour: 4.45
+    stain: 7.40
+  vinyl_ext_no_groove_2_1_2:
+    white: 2.98
+    colour: 4.03
+    stain: 6.90
+  vinyl_ext_no_groove_3_1_2:
+    white: 2.98
+    colour: 4.03
+    stain: 6.90
+  vinyl_ext_no_groove_4_1_2:
+    white: 3.55
+    colour: 4.60
+    stain: 7.90
+  vinyl_casing_2_3_4:
+    white: 1.80
+    colour: 2.80
+    stain: 5.80
+  vinyl_casing_3_1_2:
+    white: 2.55
+    colour: 3.55
+    stain: 7.55
+  vinyl_ext_solid:
+    - max_size: 3.5
+      price: 6.00
+      over_rate: 8.00
+  vinyl_casing_solid_2_3_4:
+    white: 2.50
+    colour: 3.55
+    stain: 6.50
+  vinyl_casing_solid_3_1_2:
+    white: 3.00
+    colour: 4.05
+    stain: 7.00
+  vinyl_pkg_1_3_8_casing_step_2_3_4:
+    white: 4.63
+    colour: 5.68
+    stain: 10.50
+  vinyl_pkg_2_3_8_casing_step_2_3_4:
+    white: 4.63
+    colour: 5.68
+    stain: 10.50
+  vinyl_pkg_3_3_8_casing_step_2_3_4:
+    white: 4.63
+    colour: 5.68
+    stain: 10.50
+  vinyl_pkg_4_5_8_casing_step_2_3_4:
+    white: 5.14
+    colour: 6.19
+    stain: 11.00
+  vinyl_pkg_1_3_8_casing_step_3_1_2:
+    white: 5.40
+    colour: 6.45
+    stain: 11.00
+  vinyl_pkg_2_3_8_casing_step_3_1_2:
+    white: 5.40
+    colour: 6.45
+    stain: 11.00
+  vinyl_pkg_3_3_8_casing_step_3_1_2:
+    white: 5.40
+    colour: 6.45
+    stain: 11.00
+  vinyl_pkg_4_5_8_casing_step_3_1_2:
+    white: 6.00
+    colour: 7.05
+    stain: 11.50
+  wood_ext:
+    - max_size: 4
+      price: 4.00
+      over_rate: 0
+    - max_size: 7.25
+      price: 5.00
+      over_rate: 7.00
+  bay_bow_extension: 250
+  bay_bow_plywood:
+    - max_size: 8
+      price: 450.00
+      over_rate: 500.00

@@ -1,21 +1,21 @@
 from llm_io.model_io import ModelIO
 from valid_config_generator.config_validator import ConfigValidator
-from pyhocon import ConfigFactory
+import yaml
 
 class ValidConfigGenerator:
 
-    default_conf = open("valid_config_generator/window.conf", "r").read()
+    default_conf = open("valid_config_generator/window.yaml", "r").read()
     additional_context = open("valid_config_generator/custom_context.txt", "r").read()
 
     prompt_instructions = f"""
-        You are a helpful assistant that converts free-form specifications on a quote sheet for window replacements to a flat HOCON-style .conf file with constrained keys.
-        Return in text the .conf file for inspection
+        You are a helpful assistant that converts free-form specifications on a quote sheet for window replacements to a yaml format with constrained keys.
+        Return in text the .yaml file for inspection
 
         Requirements: 
         - Anything specified in the text must be included in the config - this includes casing, brickmoulds etc
-        - Use only the keys provided in the default .conf file. Do not create your own keys
+        - Use only the keys provided in the default window.yaml file. Do not create your own keys
         - Use only the options listed in the comments inline with the keys. Do not deviate
-        - Output must be a flat HOCON config (no nesting).
+        - Output must be in yaml.
         - Values must be specified for keys marked @Required
         - Only override defaults (marked with @Optional) if they are specified in the quote free text
         - configs are grouped by the first keyword. If a product type is specified, override the config to true and add in any specifications
@@ -24,7 +24,7 @@ class ValidConfigGenerator:
         - Do not wrap the output in markdown code blocks or backticks
         - Return only the raw configuration content
 
-        default.conf file:
+        default.yaml file:
 
         {default_conf}
 
@@ -45,7 +45,7 @@ class ValidConfigGenerator:
     def generate_config(self, free_text, file_path):
         max_count = 2 # max number of times to try to generate a valid config
         response = self.model.get_response(free_text)
-        self.write_hocon_to_file(response, file_path)
+        self.write_yaml_to_file(response, file_path)
         errs, warnings = self.validate_config(file_path)
         free_window_config = free_text
         i = 0
@@ -57,7 +57,7 @@ class ValidConfigGenerator:
                 print("Did not receive a response")
                 errs = True
             else:
-                self.write_hocon_to_file(response, file_path)
+                self.write_yaml_to_file(response, file_path)
                 errs, warnings = self.validate_config(file_path)
             i += 1
         
@@ -68,17 +68,17 @@ class ValidConfigGenerator:
             return False
         return True
 
-    def write_hocon_to_file(self, config_string, file_path='window_example.conf'):
+    def write_yaml_to_file(self, config_string, file_path='window_example.yaml'):
         """
-        Write a HOCON configuration string directly to a file.
+        Write a YAML configuration string directly to a file.
         
         Args:
-            config_string (str): The HOCON configuration string
+            config_string (str): The YAML configuration string
             file_path (str): Path to the output file
         """
         # Clean up the config string - remove markdown code blocks and normalize quotes
-        cleaned_config = self.clean_config_string(config_string)
-        
+        # cleaned_config = self.clean_config_string(config_string)
+        cleaned_config = config_string
         with open(file_path, 'w') as f:
             f.write(cleaned_config)
     
@@ -109,14 +109,15 @@ class ValidConfigGenerator:
         # Join lines and normalize quotes
         cleaned_config = '\n'.join(cleaned_lines)
         
-        # Replace smart quotes with regular quotes for HOCON compatibility
+        # Replace smart quotes with regular quotes for YAML compatibility
         cleaned_config = cleaned_config.replace('"', '"').replace('"', '"')
         cleaned_config = cleaned_config.replace(''', "'").replace(''', "'")
         
         return cleaned_config
 
     def validate_config(self, file_path):
-        config = ConfigFactory.parse_file(file_path)
+        with open(file_path, 'r') as f:
+            config = yaml.safe_load(f)
         errs, warnings = self.config_validator.validate(config)
         return errs, warnings
 

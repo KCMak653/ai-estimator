@@ -309,6 +309,11 @@
             </div>
 
             <div class="form-group">
+                <label for="project-description">Project-wide Specs</label>
+                <textarea id="project-description" class="description-input" placeholder="Applies to all windows in the project, e.g., white interior, black exterior" oninput="autoResize(this)"></textarea>
+            </div>
+
+            <div class="form-group">
                 <label>Window Descriptions</label>
                 <div class="windows-section">
                     <div id="windowsList">
@@ -406,6 +411,7 @@
 
         async function getQuote() {
             const address = document.getElementById('address').value.trim();
+            const projectDescription = document.getElementById('project-description').value.trim();
             const windowItems = document.querySelectorAll('.window-item');
             
             // Validation
@@ -464,6 +470,7 @@
                     },
                     body: JSON.stringify({
                         project_name: address,
+                        project_description: projectDescription,
                         window_descriptions: windowDescriptions
                     })
                 });

@@ -1,5 +1,4 @@
-from pyhocon.exceptions import ConfigMissingException
-from util.hocon_util import getOrReturnNone
+from util.yaml_util import getOrReturnNoneYaml
 # --- Helper Functions --- 
 
 def calculate_sf(width, height):
@@ -75,12 +74,12 @@ def get_base_price(window_type, finish, pricing_config, sf):
     """
     try:
         # Get the pricing brackets for this window type and finish
-        brackets = pricing_config.get(f"{window_type}.{finish}")
+        brackets = pricing_config.get(window_type, {}).get(finish)
         
         if brackets is None:
             raise ValueError(f"Base price finish '{finish}' not found for {window_type}")
         
-        # Convert the HOCON format to the format expected by calculate_price_from_brackets
+        # Convert the YAML format to the format expected by calculate_price_from_brackets
         converted_brackets = []
         for bracket in brackets:
             max_sf = bracket.get('max_sf')

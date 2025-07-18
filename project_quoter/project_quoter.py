@@ -7,33 +7,42 @@ import os
 
 
 class ProjectQuoter:
-    def __init__(self, model_name: str, pricing_config_path: str = "valid_config_generator/pricing.conf", debug = False):
+    def __init__(self, model_name: str, pricing_config_path: str = "valid_config_generator/pricing.yaml", debug = False):
         self.pricing_config_path = pricing_config_path
         self.model_name = model_name
         self.debug = debug
     
-    def format_window_description(self, window_data: Dict) -> str:
+    def format_window_description(self, window_data: Dict, project_description: str = None) -> str:
         """Format window data into a description string for config generation"""
         description = window_data['description']
         width = window_data['width']
         height = window_data['height']
         
         formatted_description = f"{description}, width: {width}, height: {height}"
+        
+        # Append project description if provided
+        if project_description:
+            formatted_description += f", {project_description}"
+            
         return formatted_description
         
     def cleanup_temp_files(self, num_windows: int) -> None:
         """Clean up temporary config files"""
         for i in range(1, num_windows + 1):
-            temp_file = f"temp_window_{i}.conf"
+            temp_file = f"temp_window_{i}.yaml"
             if os.path.exists(temp_file):
                 try:
                     os.remove(temp_file)
                 except:
                     pass  # Ignore cleanup errors
             
-    def quote_project(self, window_descriptions: Dict) -> Tuple[float, Dict]:
+    def quote_project(self, project_dict: Dict) -> Tuple[float, Dict]:
         """Quote all windows in the project and return total cost and breakdown"""
         failed_configs = []
+        print(project_dict)
+        # Extract window descriptions and project description
+        window_descriptions = project_dict['window_descriptions']
+        project_description = project_dict.get('project_description')
         
         # Initialize the config generator
         config_generator = ValidConfigGenerator(self.model_name)
@@ -45,10 +54,10 @@ class ProjectQuoter:
         for i, (window_key, window_data) in enumerate(window_descriptions.items(), 1):
             quantity = int(window_data['quantity'])
             
-            # Format the window description with width and height
-            formatted_description = self.format_window_description(window_data)
+            # Format the window description with width, height, and project description
+            formatted_description = self.format_window_description(window_data, project_description)
             
-            config_file = f"temp_window_{i}.conf"
+            config_file = f"temp_window_{i}.yaml"
             print(f"\nProcessing window {i}: {formatted_description} (Quantity: {quantity})")
             
             # Generate and validate config

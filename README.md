@@ -15,7 +15,7 @@ An intelligent window replacement quoting system that converts natural language 
 ### Core Components
 
 1. **ValidConfigGenerator** (`valid_config_generator/`)
-   - Converts natural language to HOCON configuration files
+   - Converts natural language to YAML configuration files
    - Uses OpenAI models for intelligent parsing
    - Validates and corrects configurations automatically
 
@@ -44,10 +44,10 @@ from window_quoter.window_quoter import WindowQuoter
 
 # Generate configuration from natural language
 generator = ValidConfigGenerator("gpt-4.1")
-generator.generate_config("casement window 36x48 double pane lowe 180", "window.conf")
+generator.generate_config("casement window 36x48 double pane lowe 180", "window.yaml")
 
 # Generate quote
-quoter = WindowQuoter("window.conf", "valid_config_generator/pricing.conf")
+quoter = WindowQuoter("window.yaml", "valid_config_generator/pricing.yaml")
 price, breakdown = quoter.quote_window()
 
 print(f"Price: ${price:.2f}")
@@ -99,31 +99,27 @@ print(f"Total Project Cost: ${total_cost:.2f}")
 
 ## Example Configuration
 
-```hocon
-window_type = "casement"
-width = 36
-height = 48
+```yaml
+window_type: "casement"
+width: 36
+height: 48
 
-casement {
-    interior = "white"
-    exterior = "color"
-}
+casement:
+  interior: "white"
+  exterior: "color"
 
-glass {
-    type = "double"
-    subtype = "lowe_180"
-    thickness_mm = 4
-}
+glass:
+  type: "double"
+  subtype: "lowe_180"
+  thickness_mm: 4
 
-shapes {
-    type = "half_circle"
-}
+shapes:
+  type: "half_circle"
 
-brickmould {
-    include = true
-    size = "1_5_8"
-    finish = "white"
-}
+brickmould:
+  include: true
+  size: "1_5_8"
+  finish: "white"
 ```
 
 ## Pricing Logic
@@ -153,7 +149,7 @@ python3 -m valid_config_generator.main
 ## Requirements
 
 - Python 3.9+
-- pyhocon
+- pyyaml
 - OpenAI API access
 - Custom pricing configuration files
 
@@ -164,8 +160,8 @@ ai-estimator/
 ├── valid_config_generator/     # AI config generation
 │   ├── config_validator.py     # Configuration validation
 │   ├── valid_config_generator.py
-│   ├── window.conf             # Template configuration
-│   └── pricing.conf            # Pricing database
+│   ├── window.yaml             # Template configuration
+│   └── pricing.yaml            # Pricing database
 ├── window_quoter/              # Quote calculation engine
 │   ├── window_quoter.py        # Main quoter class
 │   └── helper_funcs.py         # Utility functions
@@ -174,7 +170,7 @@ ai-estimator/
 ├── llm_io/                     # LLM interface
 │   └── model_io.py
 ├── util/                       # Shared utilities
-│   └── hocon_util.py
+│   └── yaml_util.py
 └── main.py                     # Multi-window project demo
 ```
 
