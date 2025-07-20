@@ -15,49 +15,6 @@ def calculate_lf(width, height):
         raise ValueError("Height must be greater than 0")
     return (2 * (width + height)) / 12.0
 
-def calculate_price_from_brackets(value, brackets, error_prefix="Price"):
-    """
-    Generic function to calculate price based on value and brackets.
-    
-    Args:
-        value: The value to find the price for (e.g., square footage)
-        brackets: List of tuples (max_value, price, over_rate)
-        error_prefix: Prefix for error messages
-        
-    Returns:
-        Calculated price based on the brackets
-    """
-    if brackets is None:
-        raise ValueError(f"{error_prefix} brackets not found")
-
-    if value < 0:
-        raise ValueError(f"{error_prefix} value must be greater than 0")
-    if value == 0:
-        return 0
-        
-    base_price = 0
-    price_per_unit_over = 0
-    last_max_value = 0
-    
-    for max_value, price, over_rate in brackets:
-        last_max_value = max_value
-        if value < max_value:
-            base_price = price
-            price_per_unit_over = 0
-            break
-        else:
-            base_price = price
-            price_per_unit_over = over_rate
-    
-    if price_per_unit_over > 0 and value > last_max_value:
-        over_value = value - last_max_value
-        # Base price should already be set to the price of the last bracket
-        base_price += over_value * price_per_unit_over
-    
-    if base_price == 0 and value > 0:  # Check value>0 to avoid error for 0 size input
-        raise ValueError(f"Could not determine {error_prefix} for value={value:.2f}")
-    
-    return base_price
 
 def get_base_price(window_type, finish, pricing_config, sf):
     """
@@ -73,21 +30,83 @@ def get_base_price(window_type, finish, pricing_config, sf):
         The base price for the window
     """
     try:
-        # Get the pricing brackets for this window type and finish
         brackets = pricing_config.get(window_type, {}).get(finish)
         
         if brackets is None:
             raise ValueError(f"Base price finish '{finish}' not found for {window_type}")
         
-        # Convert the YAML format to the format expected by calculate_price_from_brackets
-        converted_brackets = []
-        for bracket in brackets:
+        if sf <= 0:
+            return 0
+        
+        # Sort brackets by max_sf to ensure proper range checking
+        sorted_brackets = sorted(brackets, key=lambda x: x.get('max_sf'))
+        
+        prev_max = 0
+        for bracket in sorted_brackets:
             max_sf = bracket.get('max_sf')
-            price = bracket.get('price')
-            over_rate = bracket.get('over_rate', 0)  # Default to 0 if not specified
-            converted_brackets.append((max_sf, price, over_rate))
+            price = bracket.get('price', 0)
             
-        return calculate_price_from_brackets(sf, converted_brackets, f"Base price for {window_type}, {finish}")
+            # Check if sf falls in this range: prev_max < sf <= max_sf
+            if prev_max < sf <= max_sf:
+                return price  # Always use fixed price within ranges
+            
+            prev_max = max_sf
+        
+        # If sf exceeds all ranges, use rate-based pricing from last bracket
+        last_bracket = sorted_brackets[-1]
+        per_sq_rate = last_bracket.get('per_sq_rate', 0)
+        
+        if per_sq_rate > 0:
+            return sf * per_sq_rate
+        else:
+            # Fallback to last bracket's price if no rate specified
+            return last_bracket.get('price', 0)
         
     except Exception as e:
         raise ValueError(f"Error calculating base price: {str(e)}")
+
+def calculate_price_from_yaml_brackets(value, yaml_brackets, error_prefix="Price"):
+    """
+    Calculate price from YAML bracket dictionaries using range-based logic.
+    
+    Args:
+        value: The value to find the price for (e.g., linear feet, square feet)
+        yaml_brackets: List of dictionaries with max_size/max_sf, price, per_sq_rate
+        error_prefix: Prefix for error messages
+        
+    Returns:
+        Calculated price based on the brackets
+    """
+    try:
+        if yaml_brackets is None:
+            raise ValueError(f"{error_prefix} brackets not found")
+        
+        if value <= 0:
+            return 0
+        
+        # Sort brackets by max value (could be max_sf or max_size)
+        sorted_brackets = sorted(yaml_brackets, key=lambda x: x.get('max_sf') or x.get('max_size'))
+        
+        prev_max = 0
+        for bracket in sorted_brackets:
+            max_val = bracket.get('max_sf') or bracket.get('max_size')
+            price = bracket.get('price', 0)
+            
+            # Check if value falls in this range: prev_max < value <= max_val
+            if prev_max < value <= max_val:
+                return price  # Always use fixed price within ranges
+            
+            prev_max = max_val
+        
+        # If value exceeds all ranges, use rate-based pricing from last bracket
+        last_bracket = sorted_brackets[-1]
+        per_sq_rate = last_bracket.get('per_sq_rate', 0)
+        
+        if per_sq_rate > 0:
+            return value * per_sq_rate
+        else:
+            # Fallback to last bracket's price if no rate specified
+            return last_bracket.get('price', 0)
+        
+    except Exception as e:
+        raise ValueError(f"Error calculating {error_prefix}: {str(e)}")

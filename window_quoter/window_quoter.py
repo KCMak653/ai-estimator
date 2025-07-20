@@ -198,15 +198,7 @@ class WindowQuoter:
                     price_breakdown['Error'] = "Wood extension pricing not found"
                     return 0, price_breakdown
                     
-                # Convert brackets to format expected by calculate_price_from_brackets
-                converted_brackets = []
-                for bracket in wood_ext_brackets:
-                    max_size = getOrReturnNoneYaml(bracket, 'max_size')
-                    price = getOrReturnNoneYaml(bracket, 'price')
-                    over_rate = getOrReturnNoneYaml(bracket, 'over_rate', 0)
-                    converted_brackets.append((max_size, price, over_rate))
-                    
-                casing_extension_cost = calculate_price_from_brackets(self.lf, converted_brackets, "Wood extension")
+                casing_extension_cost = calculate_price_from_yaml_brackets(self.lf, wood_ext_brackets, "Wood extension")
             else:
                 casing_extension_cost = self.lf * getOrReturnNoneYaml(self.pricing_config, f"casing_extension.{getOrReturnNoneYaml(self.casing_extension_config, 'type')}.{getOrReturnNoneYaml(self.casing_extension_config, 'finish')}")
             price_breakdown[f"Casing Extension ({getOrReturnNoneYaml(self.casing_extension_config, 'type')}, {getOrReturnNoneYaml(self.casing_extension_config, 'finish')})"] = casing_extension_cost
@@ -224,15 +216,7 @@ class WindowQuoter:
                     price_breakdown['Error'] = "Bay/bow plywood pricing not found"
                     return 0, price_breakdown
                     
-                # Convert brackets to format expected by calculate_price_from_brackets
-                converted_brackets = []
-                for bracket in plywood_brackets:
-                    max_size = getOrReturnNoneYaml(bracket, 'max_size')
-                    price = getOrReturnNoneYaml(bracket, 'price')
-                    over_rate = getOrReturnNoneYaml(bracket, 'over_rate', 0)
-                    converted_brackets.append((max_size, price, over_rate))
-                    
-                bay_bow_plywood_cost = calculate_price_from_brackets(self.lf, converted_brackets, "Bay/bow plywood")
+                bay_bow_plywood_cost = calculate_price_from_yaml_brackets(self.lf, plywood_brackets, "Bay/bow plywood")
                 price_breakdown[f"Bay & Bow Plywood"] = bay_bow_plywood_cost
                 current_price += bay_bow_plywood_cost
 

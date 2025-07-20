@@ -25,9 +25,9 @@ if __name__ == "__main__":
             },
             "window_2": {
             "quantity": "1",
-            "width": "72",
-            "height": "80",
-            "description": "awning"
+            "width": "36",
+            "height": "60",
+            "description": "casement"
             }
         }
     }
