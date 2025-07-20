@@ -130,19 +130,25 @@ class ProjectQuoter:
             formatted_window['Linear Feet'] = f"{breakdown['lf']:.2f}"
             
             formatted_breakdown = OrderedDict()
-            base_price_key = [k for k in breakdown.keys() if 'Base Price' in k]
-            formatted_breakdown[base_price_key[0]] = f"${breakdown[base_price_key[0]]:.2f}"
-            glass_price_key = [k for k in breakdown.keys() if 'Glass Base Price' in k]
-            formatted_breakdown[glass_price_key[0]] = f"${breakdown[glass_price_key[0]]:.2f}"
-
-            # Add any other breakdown items with $ formatting
-            for key in breakdown:
-                if key not in ['sf', 'lf', base_price_key[0], glass_price_key[0]] and key not in formatted_breakdown:
-                    value = breakdown[key]
-                    if isinstance(value, (int, float)):
-                        formatted_breakdown[key] = f"${value:.2f}"
-                    else:
-                        formatted_breakdown[key] = value
+            
+            # Handle new nested unit structure with proper formatting
+            for key, value in breakdown.items():
+                if key in ['sf', 'lf']:
+                    continue  # Skip these, already handled above
+                elif isinstance(value, dict):
+                    # This is a unit breakdown (e.g., "unit_1 - casement")
+                    unit_breakdown = OrderedDict()
+                    for unit_key, unit_value in value.items():
+                        if isinstance(unit_value, (int, float)):
+                            unit_breakdown[unit_key] = f"${unit_value:.2f}"
+                        else:
+                            unit_breakdown[unit_key] = unit_value
+                    formatted_breakdown[key] = unit_breakdown
+                elif isinstance(value, (int, float)):
+                    # This is a window-level cost (brickmould, casing, etc.)
+                    formatted_breakdown[key] = f"${value:.2f}"
+                else:
+                    formatted_breakdown[key] = value
             
             formatted_window['Cost Breakdown'] = formatted_breakdown
             
@@ -164,13 +170,7 @@ class ProjectQuoter:
         
         # Add Total Project Cost at the bottom with $ formatting
         if 'Total Project Cost' in project_breakdown:
-            total_cost_value = project_breakdown['Total Project Cost']
-            if isinstance(total_cost_value, str) and total_cost_value.startswith('$'):
-                formatted['Total Project Cost'] = total_cost_value
-            elif isinstance(total_cost_value, (int, float)):
-                formatted['Total Project Cost'] = f"${total_cost_value:.2f}"
-            else:
-                formatted['Total Project Cost'] = total_cost_value
+            formatted['Total Project Cost'] = f"${project_breakdown['Total Project Cost']:.2f}"
         
         return formatted
         
