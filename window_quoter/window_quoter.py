@@ -6,27 +6,26 @@ class WindowQuoter:
         self.window_config = window_config
         with open(pricing_config_path, "r") as file:
             self.pricing_config = yaml.safe_load(file)
+        
+        # Window-level properties
         self.width = self.window_config.get('width')
         self.height = self.window_config.get('height')
         self.sf = calculate_sf(self.width, self.height)
         self.lf = calculate_lf(self.width, self.height)
-        self.window_type = self.window_config.get('window_type')
-        self.interior_finish = getOrReturnNoneYaml(self.window_config, f"{self.window_type}.interior") if self.window_type in ['casement', 'awning', 'picture_window','fixed_casement'] else 'white'
-        self.exterior_finish = getOrReturnNoneYaml(self.window_config, f"{self.window_type}.exterior")
-        self.hardware_config = getOrReturnNoneYaml(self.window_config, f"{self.window_type}.hardware")
-        self.shape_config = getOrReturnNoneYaml(self.window_config, "shapes")
-        if self.shape_config is not None and getOrReturnNoneYaml(self.shape_config, "type") is None:
-            self.shape_config = None
-        self.glass_config = getOrReturnNoneYaml(self.window_config, "glass")
+        
+        # Units configuration
+        self.units = getOrReturnNoneYaml(self.window_config, "units")
+        
+        # Window-scoped configurations (apply to whole window)
         self.brickmould_config = getOrReturnNoneYaml(self.window_config, "brickmould")
         if self.brickmould_config is not None and not getOrReturnNoneYaml(self.brickmould_config, "include"):
             self.brickmould_config = None
+            
         self.casing_extension_config = getOrReturnNoneYaml(self.window_config, "casing_extension")
         if self.casing_extension_config is not None and not getOrReturnNoneYaml(self.casing_extension_config, "type"):
             self.casing_extension_config = None
 
     def quote_frame(self, price_breakdown = {}, current_price = 0.0):
-
         # 1. Basic Calculations
         if self.sf <= 0: # Basic validation
             price_breakdown['Error'] = "Width and Height must be greater than 0."
@@ -34,101 +33,154 @@ class WindowQuoter:
         price_breakdown['sf'] = self.sf
         price_breakdown['lf'] = self.lf
         
-        # 2. Base Price - use white pricing for stain, actual finish for others
-        try:
-            base_finish = 'white' if self.interior_finish == 'stain' else self.interior_finish
-            base_p = get_base_price(self.window_type, base_finish, self.pricing_config, self.sf)
-            price_breakdown[f'Base Price ({self.window_type} interior {base_finish})'] = base_p
-            current_price += base_p
-        except ValueError as e:
-            price_breakdown['Error'] = f"Base Price Error: {e}"
+        if self.units is None:
+            price_breakdown['Error'] = "No units configuration found."
             return 0, price_breakdown
-
-        # 3. Exterior Finish Upcharge
-        if self.exterior_finish is not None and self.exterior_finish != 'white':
-            if self.exterior_finish == 'color':
-                exterior_upcharge = base_p * getOrReturnNoneYaml(self.pricing_config, f"{self.window_type}.exterior.color_base_perc")
-                price_breakdown['Exterior Color Upcharge'] = exterior_upcharge
-                current_price += exterior_upcharge
-            elif self.exterior_finish == 'custom_color':
-                exterior_upcharge = base_p * getOrReturnNoneYaml(self.pricing_config, f"{self.window_type}.exterior.color_base_perc")
-                custom_color_add_on = getOrReturnNoneYaml(self.pricing_config, f"{self.window_type}.exterior.custom_color_add_on")
-                exterior_upcharge += custom_color_add_on
-                price_breakdown['Exterior Custom Color Upcharge'] = exterior_upcharge
-                current_price += exterior_upcharge
-            elif self.exterior_finish == 'stain':
-                stain_cost = getOrReturnNoneYaml(self.pricing_config, f"{self.window_type}.exterior.stain_add_on")
-                if stain_cost is not None:
-                    price_breakdown['Exterior Stain Add-on'] = stain_cost
-                    current_price += stain_cost
+        
+        # 2. Process each unit
+        for unit_key, unit_data in self.units.items():
+            if not unit_key.startswith('unit_'):
+                continue
+                
+            unit_type = getOrReturnNoneYaml(unit_data, 'unit_type')
+            area_frac = getOrReturnNoneYaml(unit_data, 'window_area_frac')
+            unit_sf = self.sf * area_frac
             
-        # 4. Interior Stain Upcharge
-        if self.interior_finish == 'stain':
-            stain_cost = getOrReturnNoneYaml(self.pricing_config, f"{self.window_type}.interior.stain_add_on")
-            if stain_cost is not None:
-                price_breakdown['Interior Stain Add-on'] = stain_cost
-                current_price += stain_cost
+            if unit_type is None or area_frac is None:
+                price_breakdown[f'Error - {unit_key}'] = "Missing unit_type or window_area_frac"
+                continue
+            
+            # Create nested breakdown for this unit
+            unit_name = f"{unit_key} - {unit_type}"
+            price_breakdown[unit_name] = {}
+            unit_breakdown = price_breakdown[unit_name]
+            
+            # Unit interior/exterior finishes
+            interior_finish = getOrReturnNoneYaml(unit_data, 'interior') 
+            exterior_finish = getOrReturnNoneYaml(unit_data, 'exterior')
+            
+            # 3. Base Price for this unit
+            try:
+                base_finish = 'white' if interior_finish == 'stain' else interior_finish
+                base_p = get_base_price(unit_type, base_finish, self.pricing_config, unit_sf)
+                unit_breakdown[f'Base Price ({base_finish}, {area_frac:.1%} of window)'] = base_p
+                current_price += base_p
+            except ValueError as e:
+                unit_breakdown['Error'] = f"Base Price Error: {e}"
+                continue
 
-        # 5. Hardware Options
-        if self.hardware_config:
-            for hardware, incl_bool in self.hardware_config.items():
-                if incl_bool:
-                    cost = getOrReturnNoneYaml(self.pricing_config, f"{self.window_type}.{hardware}")
-                    if cost is not None:
-                        price_breakdown[f"Hardware: {hardware}"] = cost
-                        current_price += cost
+            # 4. Exterior Finish Upcharge for this unit
+            if exterior_finish is not None and exterior_finish != 'white':
+                if exterior_finish == 'color':
+                    exterior_upcharge = base_p * getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.exterior.color_base_perc")
+                    unit_breakdown['Exterior Color Upcharge'] = exterior_upcharge
+                    current_price += exterior_upcharge
+                elif exterior_finish == 'custom_color':
+                    exterior_upcharge = base_p * getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.exterior.color_base_perc")
+                    custom_color_add_on = getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.exterior.custom_color_add_on")
+                    exterior_upcharge += custom_color_add_on
+                    unit_breakdown['Exterior Custom Color Upcharge'] = exterior_upcharge
+                    current_price += exterior_upcharge
+                elif exterior_finish == 'stain':
+                    stain_cost = getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.exterior.stain_add_on")
+                    if stain_cost is not None:
+                        unit_breakdown['Exterior Stain Add-on'] = stain_cost
+                        current_price += stain_cost
+                
+            # 5. Interior Stain Upcharge for this unit
+            if interior_finish == 'stain':
+                stain_cost = getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.interior.stain_add_on")
+                if stain_cost is not None:
+                    unit_breakdown['Interior Stain Add-on'] = stain_cost
+                    current_price += stain_cost
 
-        # 6. Shape Add-on
-        if self.shape_config is not None:
-            shape_type = getOrReturnNoneYaml(self.shape_config, "type")
-            shape_cost = getOrReturnNoneYaml(self.pricing_config, f"shapes.{shape_type}")
-            price_breakdown[f"Shape Add-on: {shape_type}"] = shape_cost
-            current_price += shape_cost
-            extras = getOrReturnNoneYaml(self.shape_config, "extras")
-            if extras:
-                for extra, incl_bool in extras.items():
+            # 6. Hardware Options for this unit
+            hardware_config = getOrReturnNoneYaml(unit_data, 'hardware')
+            if hardware_config:
+                for hardware, incl_bool in hardware_config.items():
                     if incl_bool:
-                        cost = getOrReturnNoneYaml(self.pricing_config, f"shapes.{extra}")
-                        price_breakdown[f"Shape Add-on Extra: {extra}"] = cost
-                        current_price += cost
+                        cost = getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.{hardware}")
+                        if cost is not None:
+                            unit_breakdown[f"Hardware: {hardware}"] = cost
+                            current_price += cost
+
+            # 7. Shape Add-on for this unit
+            shape_config = getOrReturnNoneYaml(unit_data, 'shapes')
+            if shape_config is not None:
+                shape_type = getOrReturnNoneYaml(shape_config, "type")
+                if shape_type is not None:
+                    shape_cost = getOrReturnNoneYaml(self.pricing_config, f"shapes.{shape_type}")
+                    unit_breakdown[f"Shape Add-on: {shape_type}"] = shape_cost
+                    current_price += shape_cost
+                    
+                    extras = getOrReturnNoneYaml(shape_config, "extras")
+                    if extras:
+                        for extra, incl_bool in extras.items():
+                            if incl_bool:
+                                cost = getOrReturnNoneYaml(self.pricing_config, f"shapes.{extra}")
+                                unit_breakdown[f"Shape Extra: {extra}"] = cost
+                                current_price += cost
 
         return current_price, price_breakdown
 
     def quote_glass(self, price_breakdown = {}, current_price = 0.0):
-        glass_type = getOrReturnNoneYaml(self.glass_config, 'type')
-        glass_subtype = getOrReturnNoneYaml(self.glass_config, 'subtype')
-        glass_thickness = getOrReturnNoneYaml(self.glass_config, 'thickness_mm')
-        min_sf = getOrReturnNoneYaml(self.pricing_config, f"glass.{glass_type}.min_size_sf")
-        
-        # Get the glass price brackets for the specific subtype
-        glass_price_brackets = getOrReturnNoneYaml(self.pricing_config, f"glass.{glass_type}.{glass_subtype}")
-        if glass_price_brackets is None:
-            price_breakdown['Error'] = f"Glass pricing not found for {glass_type}.{glass_subtype}"
+        if self.units is None:
+            price_breakdown['Error'] = "No units configuration found."
             return 0, price_breakdown
-            
-        # Find the matching thickness bracket
-        glass_price_unit = None
-        for bracket in glass_price_brackets:
-            if getOrReturnNoneYaml(bracket, 'thickness') == glass_thickness:
-                glass_price_unit = getOrReturnNoneYaml(bracket, 'price')
-                break
+        
+        # Process glass for each unit
+        for unit_key, unit_data in self.units.items():
+            if not unit_key.startswith('unit_'):
+                continue
                 
-        if glass_price_unit is None:
-            price_breakdown['Error'] = f"Glass price not found for thickness {glass_thickness}mm"
-            return 0, price_breakdown
+            unit_type = getOrReturnNoneYaml(unit_data, 'unit_type')
+            glass_config = getOrReturnNoneYaml(unit_data, 'glass')
+            if glass_config is None:
+                price_breakdown[f'Error - {unit_key}'] = "No glass configuration found"
+                continue
+                
+            area_frac = getOrReturnNoneYaml(unit_data, 'window_area_frac')
+            unit_sf = self.sf * area_frac
             
+            # Create or access nested breakdown for this unit
+            unit_name = f"{unit_key} - {unit_type}"
+            if unit_name not in price_breakdown:
+                price_breakdown[unit_name] = {}
+            unit_breakdown = price_breakdown[unit_name]
+            
+            glass_type = getOrReturnNoneYaml(glass_config, 'type')
+            glass_subtype = getOrReturnNoneYaml(glass_config, 'subtype')
+            glass_thickness = getOrReturnNoneYaml(glass_config, 'thickness_mm')
+            min_sf = getOrReturnNoneYaml(self.pricing_config, f"glass.{glass_type}.min_size_sf")
+            
+            # Get the glass price brackets for the specific subtype
+            glass_price_brackets = getOrReturnNoneYaml(self.pricing_config, f"glass.{glass_type}.{glass_subtype}")
+            if glass_price_brackets is None:
+                unit_breakdown['Error'] = f"Glass pricing not found for {glass_type}.{glass_subtype}"
+                continue
+                
+            # Find the matching thickness bracket
+            glass_price_unit = None
+            for bracket in glass_price_brackets:
+                if getOrReturnNoneYaml(bracket, 'thickness') == glass_thickness:
+                    glass_price_unit = getOrReturnNoneYaml(bracket, 'price')
+                    break
+                    
+            if glass_price_unit is None:
+                unit_breakdown['Error'] = f"Glass price not found for thickness {glass_thickness}mm"
+                continue
 
-
-        # Calculate base glass price
-        glass_price = glass_price_unit * min(self.sf, min_sf)
-        current_price += glass_price
-        price_breakdown[f"Glass Base Price ({glass_type} {glass_subtype} {glass_thickness}mm)"] = glass_price
-        
-        # Add shape surcharge if applicable
-        if self.shape_config is not None:
-            shape_add_on = getOrReturnNoneYaml(self.pricing_config, f"glass.{glass_type}.shaped_add_on")
-            current_price += shape_add_on
-            price_breakdown[f"Glass Shape Add-on"] = shape_add_on
+            # Calculate base glass price for this unit
+            glass_price = glass_price_unit * min(unit_sf, min_sf)
+            current_price += glass_price
+            unit_breakdown[f"Glass Base Price ({glass_type} {glass_subtype} {glass_thickness}mm)"] = glass_price
+            
+            # Add shape surcharge if applicable for this unit
+            shape_config = getOrReturnNoneYaml(unit_data, 'shapes')
+            if shape_config is not None and getOrReturnNoneYaml(shape_config, 'type') is not None:
+                shape_add_on = getOrReturnNoneYaml(self.pricing_config, f"glass.{glass_type}.shaped_add_on")
+                current_price += shape_add_on
+                unit_breakdown["Glass Shape Add-on"] = shape_add_on
             
         return current_price, price_breakdown
 

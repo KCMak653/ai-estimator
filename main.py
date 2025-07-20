@@ -1,5 +1,6 @@
 from project_quoter import ProjectQuoter
 from collections import OrderedDict
+from utils import pretty_print_dict
 
 if __name__ == "__main__":
     print("Demo: ProjectQuoter with multiple window descriptions")
@@ -20,7 +21,7 @@ if __name__ == "__main__":
             "quantity": "3",
             "width": "36",
             "height": "48",
-            "description": "casement"
+            "description": "casement / awning / casement"
             },
             "window_2": {
             "quantity": "1",
@@ -41,15 +42,5 @@ if __name__ == "__main__":
     total_cost, project_breakdown = project_quoter.quote_project(project)
     
 
-    def pretty_print_dict(d, indent=0):
-        """Pretty print OrderedDict with proper indentation"""
-        spaces = "  " * indent
-        for key, value in d.items():
-            if isinstance(value, (dict, OrderedDict)):
-                print(f"{spaces}{key}:")
-                pretty_print_dict(value, indent + 1)
-            else:
-                print(f"{spaces}{key}: {value}")
-    
     print("\nProject Breakdown:")
     pretty_print_dict(project_breakdown)

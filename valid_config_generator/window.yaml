@@ -1,154 +1,156 @@
 # Required
-window_type: 'casement' # @Required Enum: casement, awning, picture_window, fixed_casement
 width: 26 # in inches @Required
 height: 36 # in inches @Required
 
-
 ################################################
-# Casement
-# Omit if window_type != 'casement'
-casement:
-  interior: "white"  # options: "white" (default), "color", "stain" @Required
-  exterior: "white" # options: "white" (default), "color", "custom_color", "stain" @Required
-  
-  hardware:
-    rotto_corner_drive_1_corner: false # @Optional
-    rotto_corner_drive_2_corners: false # @Optional
-    egress_hardware: false # @Optional
-    hinges_add_over_30: false # @Optional
-    limiters: false # @Optional
-    encore_system: false # @Optional
-################################################
+units: # Refers to units that make up the window
+  unit_<N>: #Fill in N with the window number, start at 1 and increase consecutively
+    unit_type: 'casement' # @Required Enum: casement, awning, picture_window, fixed_casement
+    window_area_frac: 1 # @Required The fraction of the window that the unit represents. Default - if 1 unit = 1, if 2 units = 0.5, if 3 units = 0.333
+
+  # Depending on the unit type include the additional settings.
+  ################################################
+  # Casement
+  # Omit if unit_type != 'casement'
+    interior: "white"  # options: "white" (default), "color", "stain" @Required
+    exterior: "white" # options: "white" (default), "color", "custom_color", "stain" @Required
+    
+    hardware:
+      rotto_corner_drive_1_corner: false # @Optional
+      rotto_corner_drive_2_corners: false # @Optional
+      egress_hardware: false # @Optional
+      hinges_add_over_30: false # @Optional
+      limiters: false # @Optional
+      encore_system: false # @Optional
+  ################################################
 
 
 
-################################################
-# Awning
-# Omit if window_type != 'awning'
-awning:
-  interior: "white"  # options: "white" (default), "color", "stain" @Required
-  exterior: "white" # options: "white" (default), "color", "custom_color", "stain" @Required
-  hardware:
-    encore_system: false # @Optional
-    limiters: false # @Optional
-################################################
+  ################################################
+  # Awning
+  # Omit if unit_type != 'awning'
+    interior: "white"  # options: "white" (default), "color", "stain" @Required
+    exterior: "white" # options: "white" (default), "color", "custom_color", "stain" @Required
+    hardware:
+      encore_system: false # @Optional
+      limiters: false # @Optional
+  ################################################
 
 
 
-################################################
-# Fixed casement
-# Omit if window_type != 'fixed_casement'
-fixed_casement:
-  interior: "white"  # options: "white" (default), "color", "stain" @Required
-  exterior: "white" # options: "white" (default), "color", "custom_color", "stain" @Required
-################################################
+  ################################################
+  # Fixed casement
+  # Omit if unit_type != 'fixed_casement'
+    interior: "white"  # options: "white" (default), "color", "stain" @Required
+    exterior: "white" # options: "white" (default), "color", "custom_color", "stain" @Required
+  ################################################
 
 
 
-################################################
-# Picture Window
-# Omit if window_type != 'picture_window'
-picture_window:
-  interior: "white"  # options: "white" (default), "color", "stain" @Required
-  exterior: "white" # options: "white" (default), "color", "custom_color", "stain" @Required
-################################################
+  ################################################
+  # Picture Window
+  # Omit if unit_type != 'picture_window'
+    interior: "white"  # options: "white" (default), "color", "stain" @Required
+    exterior: "white" # options: "white" (default), "color", "custom_color", "stain" @Required
+  ################################################
 
 
 
-################################################
-# Single slider tilt/lift-out
-# Omit if window_type != 'single_slider'
-single_slider:
-  exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
-################################################
+  ################################################
+  # Single slider tilt/lift-out
+  # Omit if unit_type != 'single_slider'
+    exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
+  ################################################
 
 
 
-################################################
-# Single hung tilt
-# Omit if window_type != 'single_hung'
-# interior color is fixed: white only
-# interior stain not available
-single_hung:
-  exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
-################################################
+  ################################################
+  # Single hung tilt
+  # Omit if unit_type != 'single_hung'
+  # interior color is fixed: white only
+  # interior stain not available
+    exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
+  ################################################
 
 
 
-################################################
-# double end slider tilt/lift out
-# Omit if window_type != 'double_end_slider'
-# interior color is fixed: white only
-# interior stain not available
-double_end_slider:
-  exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
-################################################
+  ################################################
+  # double end slider tilt/lift out
+  # Omit if unittype != 'double_end_slider'
+  # interior color is fixed: white only
+  # interior stain not available
+    exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
+  ################################################
 
 
 
-################################################
-# double hung tilt
-# Omit if window_type != 'double_hung'
-# interior color is fixed: white only
-# interior stain not available
-double_hung:
-  exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
-################################################
+  ################################################
+  # double hung tilt
+  # Omit if unit_type != 'double_hung'
+  # interior color is fixed: white only
+  # interior stain not available
+    exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
+  ################################################
 
 
 
-################################################
-# double slider tilt/lift out
-# Omit if window_type != 'double_slider'
-# interior color is fixed: white only
-# interior stain not available
-double_slider:
-  exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
-################################################
+  ################################################
+  # double slider tilt/lift out
+  # Omit if unit_type != 'double_slider'
+  # interior color is fixed: white only
+  # interior stain not available
+    exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
+  ################################################
 
 
 
-# Shapes
-# shapes.type can be one of:
-# If no shape specified, set as null (rectangular window)
-# "half_circle", "quarter_circle", "ellipse", "true_ellipse", "triangle", "trapezoid", "extended_arch"
-shapes:
-  type: null  # or one of the above @Optional
-  
-  extras:
-    brickmould: false # @Optional
-    inside_casing_all_around: false # @Optional
-    extension: false # @Optional
+    # Shapes
+    # Shapes are unit-scoped. If a shape is specified for a unit include this section, otherwise omit.
+    # shapes.type can be one of:
+    # If no shape specified for a unit, omit this section
+    # "half_circle", "quarter_circle", "ellipse", "true_ellipse", "triangle", "trapezoid", "extended_arch"
+    shapes:
+      type: null  # or one of the above @Optional
+      extras:
+        brickmould: false # @Optional
+        inside_casing_all_around: false # @Optional
+        extension: false # @Optional
 
-# Glass pg 19-20
+    # Glass pg 19-20
+    #
+    # Glass is unit-scoped, this is a required section for all units. 
+    #
+    # If only one glass is specified, use the same for all units, but have the config be scoped under each individual unit.
+    #
+    # pg 14 double glazed glass units
+    #
+    # double subtypes options include: lowe_180, lowe_272, lowe_366, lowe_180_pinhead, lowe_272_pinhead,
+    # lowe_180_neat, lowe_272_neat, lowe_180_privacy, lowe_272_privacy,
+    # lowe_180_i89, tinted_clear, tinted_lowe_180, tinted_lowe_272,
+    # frosted_clear, laminated_clear, laminated_lowe_180, laminated_lowe_272,
+    # laminated_laminated, tempered_lowe_180, tempered_lowe_272
 
-# pg 14 double glazed glass units
-#
-# double subtypes options include: lowe_180, lowe_272, lowe_366, lowe_180_pinhead, lowe_272_pinhead,
-# lowe_180_neat, lowe_272_neat, lowe_180_privacy, lowe_272_privacy,
-# lowe_180_i89, tinted_clear, tinted_lowe_180, tinted_lowe_272,
-# frosted_clear, laminated_clear, laminated_lowe_180, laminated_lowe_272,
-# laminated_laminated, tempered_lowe_180, tempered_lowe_272
-
-# triple subtypes
-# clear_clear_clear, frosted_clear_clear,
-# lowe_180_clear_clear, lowe_272_clear_clear, lowe_366_clear_clear,
-# lowe_180_clear_lowe_366, lowe_180_clear_lowe_180, lowe_272_clear_lowe_272,
-# lowe_180_lowe_180_i89,
-# lowe_272_clear_frosted, lowe_180_clear_frosted,
-# lowe_272_clear_delta_frost, lowe_180_clear_delta_frost,
-# lowe_272_clear_taffeta, lowe_180_clear_taffeta,
-# lowe_272_clear_everglade, lowe_180_clear_everglade,
-# lowe_272_clear_acid_edge, lowe_180_clear_acid_edge,
-# lowe_272_tint_various, lowe_180_tint_various
+    # triple subtypes
+    # clear_clear_clear, frosted_clear_clear,
+    # lowe_180_clear_clear, lowe_272_clear_clear, lowe_366_clear_clear,
+    # lowe_180_clear_lowe_366, lowe_180_clear_lowe_180, lowe_272_clear_lowe_272,
+    # lowe_180_lowe_180_i89,
+    # lowe_272_clear_frosted, lowe_180_clear_frosted,
+    # lowe_272_clear_delta_frost, lowe_180_clear_delta_frost,
+    # lowe_272_clear_taffeta, lowe_180_clear_taffeta,
+    # lowe_272_clear_everglade, lowe_180_clear_everglade,
+    # lowe_272_clear_acid_edge, lowe_180_clear_acid_edge,
+    # lowe_272_tint_various, lowe_180_tint_various
 
 
-glass:
-  type: "double" # or "triple" @Required
-  subtype: "lowe_180" # Default: lowe_180 for glass.type="double", Default: lowe_180_clear_clear for glass.type="triple" @Required 
-  thickness_mm: 4 # Default: 4 @Required
+    glass:
+      type: "double" # or "triple" @Required
+      subtype: "lowe_180" # Default: lowe_180 for glass.type="double", Default: lowe_180_clear_clear for glass.type="triple" @Required 
+      thickness_mm: 4 # Default: 4 @Required
 
 # pg 18 brickmoulds & couplers
+# Brickmould is window-scoped
+# This section can be omitted in no brickmould specified
 brickmould:
   include: false # @Optional
   size: "1_5_8"  # options: "0", "5_8", "1_1_4", "1_5_8", "2" @Optional
@@ -158,7 +160,11 @@ brickmould:
 
 # pg 19 interior options
 # These settings refer to the extension and casing interior options. Not interior related to the
-# window_type
+# unit_type
+#
+# This setting is window-scoped
+# This section can be omitted in no casing or jamb specified
+#
 # Note: The term 'jamb' refers to casing
 # The suffixes refer to the thickness of the casing. The thickness provided could be given in fractions or decimals.
 # The suffixed numbers are in fractions i.e 1_3_8 = 1 3/8" and 2_1_2 = 2 1/2"
