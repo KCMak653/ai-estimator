@@ -2,23 +2,23 @@ casement:
   white:
     - max_sf: 6
       price: 154.44
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_sf: 9
       price: 174.49
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_sf: 12
       price: 194.66
-      per_sq_rate: 16.25
+      per_sf_rate: 16.25
   color:
     - max_sf: 6
       price: 182.89
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_sf: 9
       price: 200.79
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_sf: 12
       price: 218.80
-      per_sq_rate: 18.14
+      per_sf_rate: 18.14
   exterior:
     color_base_perc: 0.25
     custom_color_add_on: 200
@@ -36,23 +36,23 @@ awning:
   white:
     - max_sf: 6
       price: 166.19
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_sf: 9
       price: 186.36
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_sf: 12
       price: 206.53
-      per_sq_rate: 17.70
+      per_sf_rate: 17.70
   color:
     - max_sf: 6
       price: 198.38
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_sf: 9
       price: 216.39
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_sf: 12
       price: 234.40
-      per_sq_rate: 19.75
+      per_sf_rate: 19.75
   exterior:
     color_base_perc: 0.25
     custom_color_add_on: 200
@@ -66,11 +66,11 @@ fixed_casement:
   white:
     - max_sf: 7
       price: 97.33
-      per_sq_rate: 13.67
+      per_sf_rate: 13.67
   color:
     - max_sf: 7
       price: 116.90
-      per_sq_rate: 15.25
+      per_sf_rate: 15.25
   exterior:
     color_base_perc: 0.25
     custom_color_add_on: 200
@@ -82,11 +82,11 @@ picture_window:
   white:
     - max_sf: 7
       price: 87.44
-      per_sq_rate: 12.58
+      per_sf_rate: 12.58
   color:
     - max_sf: 7
       price: 107.38
-      per_sq_rate: 13.92
+      per_sf_rate: 13.92
   exterior:
     color_base_perc: 0.25
     custom_color_add_on: 200
@@ -98,13 +98,13 @@ single_slider:
   white:
     - max_sf: 6
       price: 127.00
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_sf: 9
       price: 142.44
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_sf: 12
       price: 157.89
-      per_sq_rate: 12.24
+      per_sf_rate: 12.24
   exterior:
     color_base_perc: 0.25
     custom_color_add_on: 200
@@ -114,13 +114,13 @@ single_hung:
   white:
     - max_sf: 6
       price: 134.15
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_sf: 9
       price: 150.74
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_sf: 12
       price: 167.37
-      per_sq_rate: 13.84
+      per_sf_rate: 13.84
   exterior:
     color_base_perc: 0.25
     custom_color_add_on: 200
@@ -130,7 +130,7 @@ double_end_slider:
   white:
     - max_sf: 14
       price: 205.37
-      per_sq_rate: 14.66
+      per_sf_rate: 14.66
   exterior:
     color_base_perc: 0.25
     custom_color_add_on: 200
@@ -140,13 +140,13 @@ double_hung:
   white:
     - max_sf: 6
       price: 132.48
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_sf: 9
       price: 148.38
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_sf: 12
       price: 164.28
-      per_sq_rate: 13.69
+      per_sf_rate: 13.69
   exterior:
     color_base_perc: 0.25
     custom_color_add_on: 200
@@ -156,13 +156,13 @@ double_slider:
   white:
     - max_sf: 6
       price: 129.31
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_sf: 9
       price: 142.02
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_sf: 12
       price: 154.74
-      per_sq_rate: 12.93
+      per_sf_rate: 12.93
   exterior:
     color_base_perc: 0.25
     custom_color_add_on: 200
@@ -572,10 +572,10 @@ casing_extension:
   vinyl_ext_solid:
     - max_size: 3.5
       price: 6.00
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_size: 7.25
       price: 8.00
-      per_sq_rate: 0
+      per_sf_rate: 0
   vinyl_casing_solid_2_3_4:
     white: 2.50
     colour: 3.55
@@ -619,18 +619,18 @@ casing_extension:
   wood_ext:
     - max_size: 4
       price: 4.00
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_size: 7.25
       price: 5.00
-      per_sq_rate: 7.00
+      per_sf_rate: 7.00
   bay_bow_extension: 250
   bay_bow_plywood:
     - max_size: 8
       price: 450.00
-      per_sq_rate: 0
+      per_sf_rate: 0
     - max_size: 100
       price: 800.00
-      per_sq_rate: 0
+      per_sf_rate: 0
 labour:
   per_sf_rate: 14.5
   min_sf: 9

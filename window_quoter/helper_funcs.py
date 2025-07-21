@@ -35,32 +35,7 @@ def get_base_price(window_type, finish, pricing_config, sf):
         if brackets is None:
             raise ValueError(f"Base price finish '{finish}' not found for {window_type}")
         
-        if sf <= 0:
-            return 0
-        
-        # Sort brackets by max_sf to ensure proper range checking
-        sorted_brackets = sorted(brackets, key=lambda x: x.get('max_sf'))
-        
-        prev_max = 0
-        for bracket in sorted_brackets:
-            max_sf = bracket.get('max_sf')
-            price = bracket.get('price', 0)
-            
-            # Check if sf falls in this range: prev_max < sf <= max_sf
-            if prev_max < sf <= max_sf:
-                return price  # Always use fixed price within ranges
-            
-            prev_max = max_sf
-        
-        # If sf exceeds all ranges, use rate-based pricing from last bracket
-        last_bracket = sorted_brackets[-1]
-        per_sq_rate = last_bracket.get('per_sq_rate', 0)
-        
-        if per_sq_rate > 0:
-            return sf * per_sq_rate
-        else:
-            # Fallback to last bracket's price if no rate specified
-            return last_bracket.get('price', 0)
+        return calculate_price_from_yaml_brackets(sf, brackets, f"Base price for {window_type}, {finish}")
         
     except Exception as e:
         raise ValueError(f"Error calculating base price: {str(e)}")
@@ -100,10 +75,10 @@ def calculate_price_from_yaml_brackets(value, yaml_brackets, error_prefix="Price
         
         # If value exceeds all ranges, use rate-based pricing from last bracket
         last_bracket = sorted_brackets[-1]
-        per_sq_rate = last_bracket.get('per_sq_rate', 0)
+        per_sf_rate = last_bracket.get('per_sf_rate', 0)
         
-        if per_sq_rate > 0:
-            return value * per_sq_rate
+        if per_sf_rate > 0:
+            return value * per_sf_rate
         else:
             # Fallback to last bracket's price if no rate specified
             return last_bracket.get('price', 0)

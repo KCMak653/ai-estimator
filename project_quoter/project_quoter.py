@@ -135,12 +135,13 @@ class ProjectQuoter:
                 elif isinstance(value, dict):
                     # This is a unit breakdown (e.g., "unit_1 - casement")
                     unit_breakdown = OrderedDict()
+                    formatted_key = key.replace('_', ' ').title()
                     for unit_key, unit_value in value.items():
                         if isinstance(unit_value, (int, float)):
                             unit_breakdown[unit_key] = f"${unit_value:.2f}"
                         else:
                             unit_breakdown[unit_key] = unit_value
-                    formatted_breakdown[key] = unit_breakdown
+                    formatted_breakdown[formatted_key] = unit_breakdown
                 elif isinstance(value, (int, float)):
                     # This is a window-level cost (brickmould, casing, etc.)
                     formatted_breakdown[key] = f"${value:.2f}"
