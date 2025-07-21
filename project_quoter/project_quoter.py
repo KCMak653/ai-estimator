@@ -98,12 +98,8 @@ class ProjectQuoter:
                 'details': [f"Window {i}: {desc[:50]}... - {error}" for i, desc, error in failed_configs]
             }
         project_breakdown["Labour"] = labour_sum    
-        project_breakdown['Total Project Cost'] = total_cost
+        project_breakdown['Total Project Cost'] = total_cost + labour_sum
         project_breakdown['Quoted Windows'] = len(window_descriptions)
-        
-        # Clean up temp files
-        if self.debug == False:
-            self.cleanup_temp_files(len(window_descriptions))
         
         return total_cost, self.format_json(project_breakdown)
 
