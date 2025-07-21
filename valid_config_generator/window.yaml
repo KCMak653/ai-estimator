@@ -151,6 +151,7 @@ units: # Refers to units that make up the window
 # pg 18 brickmoulds & couplers
 # Brickmould is window-scoped
 # This section can be omitted in no brickmould specified
+# Brickmould finish should follow exterior finish
 brickmould:
   include: false # @Optional
   size: "1_5_8"  # options: "0", "5_8", "1_1_4", "1_5_8", "2" @Optional

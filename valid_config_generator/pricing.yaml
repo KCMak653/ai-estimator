@@ -631,3 +631,6 @@ casing_extension:
     - max_size: 100
       price: 800.00
       per_sq_rate: 0
+labour:
+  per_sf_rate: 14.5
+  min_sf: 9

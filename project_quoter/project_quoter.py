@@ -49,7 +49,7 @@ class ProjectQuoter:
         total_cost = 0.0
         project_breakdown = {}
         successful_window_num = 0
-
+        labour_sum = 0
         # Process each window description with quantity
         for i, (window_key, window_data) in enumerate(window_descriptions.items(), 1):
             quantity = int(window_data['quantity'])
@@ -76,6 +76,7 @@ class ProjectQuoter:
                             'breakdown': window_breakdown,
                             'quantity': quantity
                         }
+                        labour_sum += window_breakdown["labour"]
                         # Add total cost for this window type (unit cost * quantity)
                         total_window_cost = window_cost * quantity
                         total_cost += total_window_cost
@@ -96,7 +97,7 @@ class ProjectQuoter:
                 'count': len(failed_configs),
                 'details': [f"Window {i}: {desc[:50]}... - {error}" for i, desc, error in failed_configs]
             }
-            
+        project_breakdown["Labour"] = labour_sum    
         project_breakdown['Total Project Cost'] = total_cost
         project_breakdown['Quoted Windows'] = len(window_descriptions)
         
@@ -105,7 +106,7 @@ class ProjectQuoter:
             self.cleanup_temp_files(len(window_descriptions))
         
         return total_cost, self.format_json(project_breakdown)
-    
+
     def format_json(self, project_breakdown: Dict) -> OrderedDict:
         """Format project breakdown with ordered keys, starting with 'Quoted Windows'"""
         formatted = OrderedDict()
@@ -133,7 +134,7 @@ class ProjectQuoter:
             
             # Handle new nested unit structure with proper formatting
             for key, value in breakdown.items():
-                if key in ['sf', 'lf']:
+                if key in ['sf', 'lf', 'labour']:
                     continue  # Skip these, already handled above
                 elif isinstance(value, dict):
                     # This is a unit breakdown (e.g., "unit_1 - casement")
@@ -167,7 +168,8 @@ class ProjectQuoter:
         # Add Failed Windows if it exists
         if 'Failed Windows' in project_breakdown:
             formatted['Failed Windows'] = project_breakdown['Failed Windows']
-        
+        print(project_breakdown)
+        formatted['Labour'] = f"${project_breakdown['Labour']:.2f}"
         # Add Total Project Cost at the bottom with $ formatting
         if 'Total Project Cost' in project_breakdown:
             formatted['Total Project Cost'] = f"${project_breakdown['Total Project Cost']:.2f}"

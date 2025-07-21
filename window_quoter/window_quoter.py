@@ -222,7 +222,14 @@ class WindowQuoter:
 
         return current_price, price_breakdown
 
-
+    def quote_labour(self, price_breakdown = {}, current_price = 0.0):
+        """Add labour costs"""
+        labour_pricing = self.pricing_config.get("labour")
+        labour_cost = max(labour_pricing.get("min_sf"), self.sf) * labour_pricing.get("per_sf_rate")
+        price_breakdown["labour"] = labour_cost
+        current_price += labour_cost
+        return current_price, price_breakdown
+    
     def quote_window(self):
         current_price = 0
         price_breakdown = {}
@@ -230,8 +237,9 @@ class WindowQuoter:
         current_price, price_breakdown = self.quote_frame(price_breakdown, current_price)
         current_price, price_breakdown = self.quote_glass(price_breakdown, current_price)
         current_price, price_breakdown = self.quote_trim(price_breakdown, current_price)
+        current_price, price_breakdown = self.quote_labour(price_breakdown, current_price)
 
-        return round(current_price, 2), price_breakdown
+        return current_price, price_breakdown
 
 """
                 ## TODO: implement grills, sdl
