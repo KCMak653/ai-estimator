@@ -135,6 +135,7 @@ class WindowQuoter:
                 
             unit_type = getOrReturnNoneYaml(unit_data, 'unit_type')
             glass_config = getOrReturnNoneYaml(unit_data, 'glass')
+
             if glass_config is None:
                 price_breakdown[f'Error - {unit_key}'] = "No glass configuration found"
                 continue
@@ -144,6 +145,7 @@ class WindowQuoter:
             
             # Create or access nested breakdown for this unit
             unit_name = f"{unit_key} - {unit_type}"
+
             if unit_name not in price_breakdown:
                 price_breakdown[unit_name] = {}
             unit_breakdown = price_breakdown[unit_name]
@@ -155,6 +157,7 @@ class WindowQuoter:
             
             # Get the glass price brackets for the specific subtype
             glass_price_brackets = getOrReturnNoneYaml(self.pricing_config, f"glass.{glass_type}.{glass_subtype}")
+
             if glass_price_brackets is None:
                 unit_breakdown['Error'] = f"Glass pricing not found for {glass_type}.{glass_subtype}"
                 continue
@@ -171,7 +174,7 @@ class WindowQuoter:
                 continue
 
             # Calculate base glass price for this unit
-            glass_price = glass_price_unit * min(unit_sf, min_sf)
+            glass_price = glass_price_unit * max(unit_sf, min_sf)
             current_price += glass_price
             unit_breakdown[f"Glass Base Price ({glass_type} {glass_subtype} {glass_thickness}mm)"] = glass_price
             
