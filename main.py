@@ -15,7 +15,7 @@ if __name__ == "__main__":
     # window_description_dict = { "window_1":{"description":window_descriptions[0], "quantity":2}}
     project = {
         "project_name": "123 Main Street",
-        "project_description": "black exterior",
+        "project_description": "white white 180/clear",
         "window_descriptions": {
             "window_1": {
             "quantity": "3",
@@ -27,7 +27,7 @@ if __name__ == "__main__":
             "quantity": "1",
             "width": "36",
             "height": "60",
-            "description": "casement"
+            "description": "single slider"
             }
         }
     }

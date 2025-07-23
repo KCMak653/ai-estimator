@@ -58,6 +58,7 @@ class WindowQuoter:
             # Unit interior/exterior finishes
             interior_finish = getOrReturnNoneYaml(unit_data, 'interior') 
             exterior_finish = getOrReturnNoneYaml(unit_data, 'exterior')
+            interior_finish = "white" if interior_finish is None else interior_finish
             
             # 3. Base Price for this unit
             try:
