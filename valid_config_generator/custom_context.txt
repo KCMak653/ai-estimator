@@ -11,6 +11,9 @@ SS: Single slider
 DH: Double hung
 A: Awning
 SH: Single hung
+VF: Fixed Casement
+C: Casement
+F: Fixed Casement
 
 Finishes:
 W: White
