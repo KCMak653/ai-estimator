@@ -27,7 +27,7 @@ if __name__ == "__main__":
             "quantity": "1",
             "width": "36",
             "height": "60",
-            "description": "single slider"
+            "description": "casement black black"
             }
         }
     }

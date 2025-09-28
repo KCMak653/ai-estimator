@@ -22,6 +22,7 @@ class ValidConfigGenerator:
         - Use only the options listed in the comments inline with the keys. Do not deviate
         - Output must be in yaml.
         - Values must be specified for keys marked @Required
+        - Settings prefixed by "project description" should only be applied if no other configuration for that setting is found. It should not override window specific values.
         - Only override defaults (marked with @Optional) if they are specified in the quote free text
         - configs are grouped by the first keyword. If a product type is specified, override the config to true and add in any specifications
         - Use the default value for keys unless the description explicitly mentions the other value

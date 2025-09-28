@@ -22,7 +22,7 @@ class ProjectQuoter:
         
         # Append project description if provided
         if project_description:
-            formatted_description += f", {project_description}"
+            formatted_description += f", project description: {project_description}"
             
         return formatted_description
         
