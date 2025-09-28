@@ -5,294 +5,53 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Window Project Quote</title>
     <style>
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-        }
-
+        * { box-sizing: border-box; margin: 0; padding: 0; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            padding: 20px;
+            min-height: 100vh; padding: 20px;
         }
+        .container { max-width: 600px; margin: 0 auto; background: white; border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2); overflow: hidden; }
+        .header { background: #2c3e50; color: white; padding: 30px; text-align: center; }
+        .header h1 { font-size: 28px; margin-bottom: 8px; }
+        .header p { opacity: 0.9; font-size: 16px; }
+        .form-section { padding: 30px; }
+        .form-group { margin-bottom: 25px; }
+        label { display: block; font-weight: 600; margin-bottom: 8px; color: #2c3e50; font-size: 16px; }
 
-        .container {
-            max-width: 600px;
-            margin: 0 auto;
-            background: white;
-            border-radius: 12px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-            overflow: hidden;
+        .address-input, .description-input, .bulk-input {
+            width: 100%; padding: 12px 16px; border: 2px solid #e1e8ed; border-radius: 8px;
+            font-size: 16px; transition: border-color 0.3s ease; font-family: inherit; resize: none;
+            overflow: hidden; line-height: 1.3;
         }
-
-        .header {
-            background: #2c3e50;
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
-
-        .header h1 {
-            font-size: 28px;
-            margin-bottom: 8px;
-        }
-
-        .header p {
-            opacity: 0.9;
-            font-size: 16px;
-        }
-
-        .form-section {
-            padding: 30px;
-        }
-
-        .form-group {
-            margin-bottom: 25px;
-        }
-
-        label {
-            display: block;
-            font-weight: 600;
-            margin-bottom: 8px;
-            color: #2c3e50;
-            font-size: 16px;
-        }
-
-        .address-input {
-            width: 100%;
-            padding: 12px 16px;
-            border: 2px solid #e1e8ed;
-            border-radius: 8px;
-            font-size: 16px;
-            transition: border-color 0.3s ease;
-            font-family: inherit;
-            resize: none;
-            overflow: hidden;
-            line-height: 1.2;
-            height: 48px;
-        }
-
-        .address-input:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .windows-section {
-            border: 2px dashed #e1e8ed;
-            border-radius: 8px;
-            padding: 20px;
-            background: #f8f9fa;
-        }
-
-        .window-item {
-            margin-bottom: 20px;
-            padding: 15px;
-            border: 1px solid #e1e8ed;
-            border-radius: 8px;
-            background: white;
-        }
-
-        .window-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 10px;
-        }
-
-        .window-title {
-            font-weight: 600;
-            color: #667eea;
-            font-size: 14px;
-        }
-
-        .remove-btn {
-            background: #e74c3c;
-            color: white;
-            border: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            flex-shrink: 0;
-        }
-
-        .remove-btn:hover {
-            background: #c0392b;
-        }
-
-        .controls-row {
-            display: flex;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 10px;
-        }
-
-        .control-item {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-
-        .control-label {
-            font-size: 12px;
-            color: #7f8c8d;
-        }
-
-        .small-input {
-            width: 40px;
-            height: 28px;
-            padding: 4px;
-            border: 1px solid #e1e8ed;
-            border-radius: 4px;
-            font-size: 14px;
-            text-align: center;
-        }
-
-        .small-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .dimension-input {
-            width: 60px;
-            height: 28px;
-            padding: 4px;
-            border: 1px solid #e1e8ed;
-            border-radius: 4px;
-            font-size: 14px;
-            text-align: center;
-        }
-
-        .dimension-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .description-input {
-            width: 100%;
-            padding: 8px 12px;
-            border: 1px solid #e1e8ed;
-            border-radius: 6px;
-            font-size: 14px;
-            font-family: inherit;
-            resize: none;
-            overflow: hidden;
-            min-height: 36px;
-            line-height: 1.3;
-        }
-
-        .description-input:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        .add-window-btn {
-            background: #27ae60;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: 600;
-            width: 100%;
-            margin-top: 15px;
-        }
-
-        .add-window-btn:hover {
-            background: #219a52;
+        .address-input { height: 48px; }
+        .address-input:focus, .description-input:focus, .bulk-input:focus {
+            outline: none; border-color: #667eea; box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
         }
 
         .quote-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 16px 32px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 18px;
-            font-weight: 600;
-            width: 100%;
-            margin-top: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none;
+            padding: 16px 32px; border-radius: 8px; cursor: pointer; font-size: 18px; font-weight: 600;
+            width: 100%; margin-top: 20px;
         }
+        .quote-btn:hover { transform: translateY(-2px); }
+        .quote-btn:disabled { background: #bdc3c7; cursor: not-allowed; transform: none; }
 
-        .quote-btn:hover {
-            transform: translateY(-2px);
-        }
+        .loading { text-align: center; padding: 20px; color: #7f8c8d; }
+        .spinner { border: 3px solid #f3f3f3; border-top: 3px solid #667eea; border-radius: 50%;
+            width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        .quote-btn:disabled {
-            background: #bdc3c7;
-            cursor: not-allowed;
-            transform: none;
-        }
+        .result { margin-top: 30px; padding: 25px; border-radius: 8px; border-left: 4px solid #27ae60; background: #d5f4e6; }
+        .result.error { border-left-color: #e74c3c; background: #ffeaea; }
+        .result h3 { color: #2c3e50; margin-bottom: 15px; font-size: 20px; }
 
-        .loading {
-            text-align: center;
-            padding: 20px;
-            color: #7f8c8d;
-        }
-
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid #667eea;
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        .result {
-            margin-top: 30px;
-            padding: 25px;
-            border-radius: 8px;
-            border-left: 4px solid #27ae60;
-            background: #d5f4e6;
-        }
-
-        .result.error {
-            border-left-color: #e74c3c;
-            background: #ffeaea;
-        }
-
-        .result h3 {
-            color: #2c3e50;
-            margin-bottom: 15px;
-            font-size: 20px;
-        }
-
-        .price-breakdown {
-            background: white;
-            padding: 20px;
-            border-radius: 6px;
-            margin-top: 15px;
-        }
-
-        .price-item {
-            display: flex;
-            justify-content: space-between;
-            padding: 8px 0;
-            border-bottom: 1px solid #ecf0f1;
-        }
-
-        .price-item:last-child {
-            border-bottom: none;
-            font-weight: 600;
-            font-size: 18px;
-            color: #2c3e50;
-        }
+        .price-breakdown { background: white; padding: 20px; border-radius: 6px; margin-top: 15px; }
+        .price-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #ecf0f1; }
+        .price-item:last-child { border-bottom: none; font-weight: 600; font-size: 18px; color: #2c3e50; }
+        .helper { font-size: 13px; color: #6b7280; margin-top: 6px; line-height: 1.4; }
+        .helper code { background: #f3f4f6; padding: 2px 6px; border-radius: 4px; }
     </style>
 </head>
 <body>
@@ -313,33 +72,16 @@
                 <textarea id="project-description" class="description-input" placeholder="Applies to all windows in the project, e.g., white interior, black exterior" oninput="autoResize(this)"></textarea>
             </div>
 
+            <!-- NEW: Single bulk input for all windows -->
             <div class="form-group">
-                <label>Window Descriptions</label>
-                <div class="windows-section">
-                    <div id="windowsList">
-                        <div class="window-item">
-                            <div class="window-header">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <span class="window-title">Window 1:</span>
-                                    <span class="control-label">Qty:</span>
-                                    <input type="text" class="small-input" value="1" placeholder="1">
-                                </div>
-                                <button type="button" class="remove-btn" onclick="removeWindow(this)" title="Remove window">×</button>
-                            </div>
-                            <div class="controls-row">
-                                <div class="control-item">
-                                    <span class="control-label">W:</span>
-                                    <input type="text" class="dimension-input" placeholder="36">
-                                </div>
-                                <div class="control-item">
-                                    <span class="control-label">H:</span>
-                                    <input type="text" class="dimension-input" placeholder="48">
-                                </div>
-                            </div>
-                            <textarea class="description-input" placeholder="e.g., casement white interior, black exterior" oninput="autoResize(this)"></textarea>
-                        </div>
-                    </div>
-                    <button type="button" class="add-window-btn" onclick="addWindow()">+ Window</button>
+                <label for="bulkWindows">All windows (one per line)</label>
+                <textarea id="bulkWindows" class="bulk-input" rows="6" placeholder="Examples:
+2x 30x36 casement white
+1x 36x48 slider black exterior
+30x30 hopper white" oninput="autoResize(this)"></textarea>
+                <div class="helper">
+                    Formats accepted: <code>2x 30x36 casement white</code>, <code>1 36x48 slider black exterior</code>, <code>30x30 hopper</code>.
+                    Quantity defaults to 1 if omitted.
                 </div>
             </div>
 
@@ -357,101 +99,51 @@
     </div>
 
     <script>
-        let windowCount = 1;
-
         function autoResize(textarea) {
             textarea.style.height = 'auto';
-            if (textarea.scrollHeight > parseInt(getComputedStyle(textarea).minHeight)) {
-                textarea.style.height = textarea.scrollHeight + 'px';
-            }
+            textarea.style.height = textarea.scrollHeight + 'px';
         }
 
-        function addWindow() {
-            windowCount++;
-            const windowsList = document.getElementById('windowsList');
-            
-            const windowDiv = document.createElement('div');
-            windowDiv.className = 'window-item';
-            windowDiv.innerHTML = `
-                <div class="window-header">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span class="window-title">Window ${windowCount}:</span>
-                        <span class="control-label">Qty:</span>
-                        <input type="text" class="small-input" value="1" placeholder="1">
-                    </div>
-                    <button type="button" class="remove-btn" onclick="removeWindow(this)" title="Remove window">×</button>
-                </div>
-                <div class="controls-row">
-                    <div class="control-item">
-                        <span class="control-label">W:</span>
-                        <input type="text" class="dimension-input" placeholder="36">
-                    </div>
-                    <div class="control-item">
-                        <span class="control-label">H:</span>
-                        <input type="text" class="dimension-input" placeholder="48">
-                    </div>
-                </div>
-                <textarea class="description-input" placeholder="e.g., casement white interior, black exterior" oninput="autoResize(this)"></textarea>
-            `;
-            
-            windowsList.appendChild(windowDiv);
-        }
-
-        function removeWindow(button) {
-            const windowItem = button.closest('.window-item');
-            windowItem.remove();
-            
-            // Renumber windows
-            const windows = document.querySelectorAll('.window-title');
-            windows.forEach((title, index) => {
-                title.textContent = `Window ${index + 1}:`;
-            });
-            windowCount = windows.length;
+        // Parse a single line like:
+        // "2x 30x36 casement white"
+        // "1 36x48 slider black exterior"
+        // "30x30 hopper"
+        function parseLine(line) {
+            const m = line.match(/^\s*(?:(\d+)\s*x?\s+)?(\d+(?:\.\d+)?)\s*[xX]\s*(\d+(?:\.\d+)?)\s*(.*)$/);
+            if (!m) return null;
+            const [, qtyMaybe, w, h, rest] = m;
+            const qty = qtyMaybe ? qtyMaybe : "1";
+            const desc = (rest || "").trim();
+            return { quantity: qty, width: String(w), height: String(h), description: desc };
         }
 
         async function getQuote() {
             const address = document.getElementById('address').value.trim();
             const projectDescription = document.getElementById('project-description').value.trim();
-            const windowItems = document.querySelectorAll('.window-item');
-            
-            // Validation
+            const bulk = document.getElementById('bulkWindows').value.trim();
+
             if (!address) {
                 alert('Please enter a project address');
                 return;
             }
-            
-            if (windowItems.length === 0) {
-                alert('Please add at least one window');
+            if (!bulk) {
+                alert('Please enter at least one window line');
                 return;
             }
-            
-            // Build window descriptions object
+
+            // Build window_descriptions from the bulk textarea
+            const lines = bulk.split(/\r?\n/).filter(l => l.trim() !== "");
             const windowDescriptions = {};
-            let hasValidWindow = false;
-            
-            windowItems.forEach((windowItem, index) => {
-                const qtyInput = windowItem.querySelector('.small-input');
-                const dimensionInputs = windowItem.querySelectorAll('.dimension-input');
-                const textarea = windowItem.querySelector('.description-input');
-                
-                const quantity = qtyInput.value.trim();
-                const width = dimensionInputs[0].value.trim();
-                const height = dimensionInputs[1].value.trim();
-                const description = textarea.value.trim();
-                
-                if (description) {
-                    windowDescriptions[`window_${index + 1}`] = {
-                        quantity: quantity || "1",
-                        width: width || "",
-                        height: height || "",
-                        description: description
-                    };
-                    hasValidWindow = true;
+            let idx = 1;
+            for (const line of lines) {
+                const parsed = parseLine(line);
+                if (parsed) {
+                    windowDescriptions[`window_${idx}`] = parsed;
+                    idx++;
                 }
-            });
-            
-            if (!hasValidWindow) {
-                alert('Please add at least one window description');
+            }
+            if (idx === 1) {
+                alert('Could not parse any window lines. Try formats like "2x 30x36 casement white".');
                 return;
             }
 
@@ -461,7 +153,7 @@
             document.getElementById('result').innerHTML = '';
 
             try {
-                const response = await fetch('https://quote-api.egressexperts.ca/quote_project', {
+                const response = await fetch('http://127.0.0.1:5000/quote_project', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -493,26 +185,22 @@
 
         function displayResult(data) {
             const resultDiv = document.getElementById('result');
-            
             let html = `
                 <div class="result">
                     <h3>✅ Quote Generated Successfully</h3>
                     <p><strong>Project:</strong> ${data.project_name || 'N/A'}</p>
             `;
-
             if (data.price_breakdown) {
                 html += '<div class="price-breakdown">';
                 html += renderPriceBreakdown(data.price_breakdown);
                 html += '</div>';
             }
-
             html += '</div>';
             resultDiv.innerHTML = html;
         }
 
         function renderPriceBreakdown(breakdown, level = 0) {
             let html = '';
-            
             for (const [key, value] of Object.entries(breakdown)) {
                 if (typeof value === 'object' && value !== null) {
                     html += `
@@ -531,7 +219,6 @@
                     `;
                 }
             }
-            
             return html;
         }
 
