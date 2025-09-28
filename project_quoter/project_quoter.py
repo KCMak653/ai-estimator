@@ -97,9 +97,10 @@ class ProjectQuoter:
                 'count': len(failed_configs),
                 'details': [f"Window {i}: {desc[:50]}... - {error}" for i, desc, error in failed_configs]
             }
-        project_breakdown["Labour"] = labour_sum    
-        project_breakdown['Total Project Cost'] = total_cost + labour_sum
         project_breakdown['Quoted Windows'] = len(window_descriptions)
+        project_breakdown['Total Window Cost'] = total_cost
+        project_breakdown['Labour'] = labour_sum
+        project_breakdown['Total Project Cost'] = total_cost + labour_sum
         
         return total_cost, self.format_json(project_breakdown)
 
@@ -166,6 +167,8 @@ class ProjectQuoter:
         if 'Failed Windows' in project_breakdown:
             formatted['Failed Windows'] = project_breakdown['Failed Windows']
         print(project_breakdown)
+        if 'Total Window Cost' in project_breakdown:
+            formatted['Total Window Cost'] = f"${project_breakdown['Total Window Cost']:.2f}"
         formatted['Labour'] = f"${project_breakdown['Labour']:.2f}"
         # Add Total Project Cost at the bottom with $ formatting
         if 'Total Project Cost' in project_breakdown:
