@@ -12,8 +12,8 @@ units: # Refers to units that make up the window
   ################################################
   # Casement
   # Omit if unit_type != 'casement'
-    interior: "white"  # options: "white" (default), "color", "stain" @Required
-    exterior: "white" # options: "white" (default), "color", "custom_color", "stain" @Required
+    interior: "white"  # options: "white" (default), "colour", "stain" @Required
+    exterior: "white" # options: "white" (default), "colour", "custom_colour", "stain" @Required
     
     hardware:
       rotto_corner_drive_1_corner: false # @Optional
@@ -29,8 +29,8 @@ units: # Refers to units that make up the window
   ################################################
   # Awning
   # Omit if unit_type != 'awning'
-    interior: "white"  # options: "white" (default), "color", "stain" @Required
-    exterior: "white" # options: "white" (default), "color", "custom_color", "stain" @Required
+    interior: "white"  # options: "white" (default), "colour", "stain" @Required
+    exterior: "white" # options: "white" (default), "colour", "custom_colour", "stain" @Required
     hardware:
       encore_system: false # @Optional
       limiters: false # @Optional
@@ -41,8 +41,8 @@ units: # Refers to units that make up the window
   ################################################
   # Fixed casement
   # Omit if unit_type != 'fixed_casement'
-    interior: "white"  # options: "white" (default), "color", "stain" @Required
-    exterior: "white" # options: "white" (default), "color", "custom_color", "stain" @Required
+    interior: "white"  # options: "white" (default), "colour", "stain" @Required
+    exterior: "white" # options: "white" (default), "colour", "custom_colour", "stain" @Required
   ################################################
 
 
@@ -50,8 +50,8 @@ units: # Refers to units that make up the window
   ################################################
   # Picture Window
   # Omit if unit_type != 'picture_window'
-    interior: "white"  # options: "white" (default), "color", "stain" @Required
-    exterior: "white" # options: "white" (default), "color", "custom_color", "stain" @Required
+    interior: "white"  # options: "white" (default), "colour", "stain" @Required
+    exterior: "white" # options: "white" (default), "colour", "custom_colour", "stain" @Required
   ################################################
 
 
@@ -59,7 +59,7 @@ units: # Refers to units that make up the window
   ################################################
   # Single slider tilt/lift-out
   # Omit if unit_type != 'single_slider'
-    exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
+    exterior: "white"  # options: "white" (default), "colour", "custom_colour", "stain" @Required
   ################################################
 
 
@@ -67,9 +67,9 @@ units: # Refers to units that make up the window
   ################################################
   # Single hung tilt
   # Omit if unit_type != 'single_hung'
-  # interior color is fixed: white only
+  # interior colour is fixed: white only
   # interior stain not available
-    exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
+    exterior: "white"  # options: "white" (default), "colour", "custom_colour", "stain" @Required
   ################################################
 
 
@@ -77,9 +77,9 @@ units: # Refers to units that make up the window
   ################################################
   # double end slider tilt/lift out
   # Omit if unittype != 'double_end_slider'
-  # interior color is fixed: white only
+  # interior colour is fixed: white only
   # interior stain not available
-    exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
+    exterior: "white"  # options: "white" (default), "colour", "custom_colour", "stain" @Required
   ################################################
 
 
@@ -87,9 +87,9 @@ units: # Refers to units that make up the window
   ################################################
   # double hung tilt
   # Omit if unit_type != 'double_hung'
-  # interior color is fixed: white only
+  # interior colour is fixed: white only
   # interior stain not available
-    exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
+    exterior: "white"  # options: "white" (default), "colour", "custom_colour", "stain" @Required
   ################################################
 
 
@@ -97,9 +97,9 @@ units: # Refers to units that make up the window
   ################################################
   # double slider tilt/lift out
   # Omit if unit_type != 'double_slider'
-  # interior color is fixed: white only
+  # interior colour is fixed: white only
   # interior stain not available
-    exterior: "white"  # options: "white" (default), "color", "custom_color", "stain" @Required
+    exterior: "white"  # options: "white" (default), "colour", "custom_colour", "stain" @Required
   ################################################
 
 

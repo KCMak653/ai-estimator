@@ -24,6 +24,6 @@ jamb = casing
 
 Industry conventions:
 
-- For exterior/interior finishes (i.e <window_type>.interior, <window_type>.exterior) any color that isn't white would be considered color respectively. i.e red in, black in, yellow out would all be classifed as color
+- For exterior/interior finishes (i.e <window_type>.interior, <window_type>.exterior) any colour that isn't white would be considered colour respectively. i.e red in, black in, yellow out would all be classifed as colour
 - The terms 'in' and 'out' are used to refer to interior and exterior respectively
-- Finishes can be separated by a slash '/', the left refering to interior and the right side the exterior. Example white/black means white interior and color exterior. stain/white is interior stain and white exterior.
+- Finishes can be separated by a slash '/', the left refering to interior and the right side the exterior. Example white/black means white interior and colour exterior. stain/white is interior stain and white exterior.

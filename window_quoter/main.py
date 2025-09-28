@@ -17,7 +17,7 @@ if __name__ == "__main__":
                 'unit_type': 'casement',
                 'window_area_frac': 0.5,
                 'interior': 'white',
-                'exterior': 'color',
+                'exterior': 'colour',
                 'hardware': {
                     'rotto_corner_drive_1_corner': True,
                     'limiters': True
@@ -51,8 +51,8 @@ if __name__ == "__main__":
             'unit_3': {
                 'unit_type': 'picture_window',
                 'window_area_frac': 0.2,
-                'interior': 'color',
-                'exterior': 'custom_color',
+                'interior': 'colour',
+                'exterior': 'custom_colour',
                 'glass': {
                     'type': 'double',
                     'subtype': 'lowe_272',

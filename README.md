@@ -84,8 +84,8 @@ print(f"Total Project Cost: ${total_cost:.2f}")
 - Single/Double Hung
 
 ### Finish Options
-- **Interior**: `white` (default), `color`, `stain`
-- **Exterior**: `white` (default), `color`, `custom_color`, `stain`
+- **Interior**: `white` (default), `colour`, `stain`
+- **Exterior**: `white` (default), `colour`, `custom_colour`, `stain`
 
 ### Glass Options
 - **Double Pane**: Low-E 180, Low-E 272, Low-E 366, tinted, laminated, tempered
@@ -106,7 +106,7 @@ height: 48
 
 casement:
   interior: "white"
-  exterior: "color"
+  exterior: "colour"
 
 glass:
   type: "double"
@@ -128,7 +128,7 @@ The system uses a sophisticated pricing model:
 
 1. **Base Price**: Determined by window type and interior finish
 2. **Stain Handling**: Uses white base price + stain add-on for stain finishes
-3. **Exterior Upcharges**: Percentage-based for colors, flat rate for stains
+3. **Exterior Upcharges**: Percentage-based for colours, flat rate for stains
 4. **Glass Pricing**: Thickness and type-based with minimum square footage
 5. **Shape Add-ons**: Flat rates for specialty shapes
 6. **Hardware**: À la carte pricing for optional hardware

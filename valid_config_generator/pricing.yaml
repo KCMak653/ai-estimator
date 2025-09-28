@@ -9,7 +9,7 @@ casement:
     - max_sf: 12
       price: 194.66
       per_sf_rate: 16.25
-  color:
+  colour:
     - max_sf: 6
       price: 182.89
       per_sf_rate: 0
@@ -20,8 +20,8 @@ casement:
       price: 218.80
       per_sf_rate: 18.14
   exterior:
-    color_base_perc: 0.25
-    custom_color_add_on: 200
+    colour_base_perc: 0.25
+    custom_colour_add_on: 200
     stain_add_on: 90.00
   interior:
     stain_add_on: 120.00
@@ -43,7 +43,7 @@ awning:
     - max_sf: 12
       price: 206.53
       per_sf_rate: 17.70
-  color:
+  colour:
     - max_sf: 6
       price: 198.38
       per_sf_rate: 0
@@ -54,8 +54,8 @@ awning:
       price: 234.40
       per_sf_rate: 19.75
   exterior:
-    color_base_perc: 0.25
-    custom_color_add_on: 200
+    colour_base_perc: 0.25
+    custom_colour_add_on: 200
     stain_add_on: 90.00
   interior:
     stain_add_on: 140.00
@@ -67,13 +67,13 @@ fixed_casement:
     - max_sf: 7
       price: 97.33
       per_sf_rate: 13.67
-  color:
+  colour:
     - max_sf: 7
       price: 116.90
       per_sf_rate: 15.25
   exterior:
-    color_base_perc: 0.25
-    custom_color_add_on: 200
+    colour_base_perc: 0.25
+    custom_colour_add_on: 200
     stain_add_on: 50.00
   interior:
     stain_add_on: 70.00
@@ -83,13 +83,13 @@ picture_window:
     - max_sf: 7
       price: 87.44
       per_sf_rate: 12.58
-  color:
+  colour:
     - max_sf: 7
       price: 107.38
       per_sf_rate: 13.92
   exterior:
-    color_base_perc: 0.25
-    custom_color_add_on: 200
+    colour_base_perc: 0.25
+    custom_colour_add_on: 200
     stain_add_on: 50.00
   interior:
     stain_add_on: 70.00
@@ -106,8 +106,8 @@ single_slider:
       price: 157.89
       per_sf_rate: 12.24
   exterior:
-    color_base_perc: 0.25
-    custom_color_add_on: 200
+    colour_base_perc: 0.25
+    custom_colour_add_on: 200
     stain_add_on: 60.00
 
 single_hung:
@@ -122,8 +122,8 @@ single_hung:
       price: 167.37
       per_sf_rate: 13.84
   exterior:
-    color_base_perc: 0.25
-    custom_color_add_on: 200
+    colour_base_perc: 0.25
+    custom_colour_add_on: 200
     stain_add_on: 60.00
 
 double_end_slider:
@@ -132,8 +132,8 @@ double_end_slider:
       price: 205.37
       per_sf_rate: 14.66
   exterior:
-    color_base_perc: 0.25
-    custom_color_add_on: 200
+    colour_base_perc: 0.25
+    custom_colour_add_on: 200
     stain_add_on: 90.00
 
 double_hung:
@@ -148,8 +148,8 @@ double_hung:
       price: 164.28
       per_sf_rate: 13.69
   exterior:
-    color_base_perc: 0.25
-    custom_color_add_on: 200
+    colour_base_perc: 0.25
+    custom_colour_add_on: 200
     stain_add_on: 90.00
 
 double_slider:
@@ -164,8 +164,8 @@ double_slider:
       price: 154.74
       per_sf_rate: 12.93
   exterior:
-    color_base_perc: 0.25
-    custom_color_add_on: 200
+    colour_base_perc: 0.25
+    custom_colour_add_on: 200
     stain_add_on: 90.00
 
 shapes:

@@ -72,15 +72,15 @@ class WindowQuoter:
 
             # 4. Exterior Finish Upcharge for this unit
             if exterior_finish is not None and exterior_finish != 'white':
-                if exterior_finish == 'color':
-                    exterior_upcharge = base_p * getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.exterior.color_base_perc")
-                    unit_breakdown['Exterior Color Upcharge'] = exterior_upcharge
+                if exterior_finish == 'colour':
+                    exterior_upcharge = base_p * getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.exterior.colour_base_perc")
+                    unit_breakdown['Exterior colour Upcharge'] = exterior_upcharge
                     current_price += exterior_upcharge
-                elif exterior_finish == 'custom_color':
-                    exterior_upcharge = base_p * getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.exterior.color_base_perc")
-                    custom_color_add_on = getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.exterior.custom_color_add_on")
-                    exterior_upcharge += custom_color_add_on
-                    unit_breakdown['Exterior Custom Color Upcharge'] = exterior_upcharge
+                elif exterior_finish == 'custom_colour':
+                    exterior_upcharge = base_p * getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.exterior.colour_base_perc")
+                    custom_colour_add_on = getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.exterior.custom_colour_add_on")
+                    exterior_upcharge += custom_colour_add_on
+                    unit_breakdown['Exterior Custom colour Upcharge'] = exterior_upcharge
                     current_price += exterior_upcharge
                 elif exterior_finish == 'stain':
                     stain_cost = getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.exterior.stain_add_on")

@@ -17,8 +17,8 @@ class ConfigValidator:
         'double_hung', 'double_slider'
     }
     # ... (keep all other enum/set definitions from the previous version) ...
-    INTERIOR_OPTIONS: Set[str] = {"white", "color", "stain"}
-    EXTERIOR_OPTIONS: Set[str] = {"white", "color", "custom_color", "stain"}
+    INTERIOR_OPTIONS: Set[str] = {"white", "colour", "stain"}
+    EXTERIOR_OPTIONS: Set[str] = {"white", "colour", "custom_colour", "stain"}
     BOOLEAN_OPTIONS: Set[bool] = {True, False}
 
     SHAPES_TYPES: Set[Optional[str]] = {
@@ -314,7 +314,7 @@ class ConfigValidator:
 
     def _validate_unit_single_hung(self, unit_data: Optional[dict], unit_key: str, errors: List[str]):
         """Validates single_hung-specific fields for a unit."""
-        # Fixed interior color: white only (Implicitly handled by absence of interior color option)
+        # Fixed interior colour: white only (Implicitly handled by absence of interior colour option)
         # Interior stain not available
         self._validate_required(unit_data, 'exterior', errors)
         self._validate_enum(unit_data, 'exterior', self.EXTERIOR_OPTIONS, errors, optional=False)
@@ -460,7 +460,7 @@ if __name__ == "__main__":
                 'unit_type': 'casement',
                 'window_area_frac': 1.0,
                 'interior': 'white',
-                'exterior': 'color',
+                'exterior': 'colour',
                 'glass': {
                     'type': 'double',
                     'subtype': 'lowe_180',

@@ -22,7 +22,7 @@ class TestWindowQuoter(unittest.TestCase):
             "height": 48,
             "casement": {
                 "interior": "white",
-                "exterior_color": "standard",
+                "exterior_colour": "standard",
                 "stain": {
                     "interior": False,
                     "exterior": False
@@ -79,9 +79,9 @@ class TestWindowQuoter(unittest.TestCase):
                     {"max_sf": 9, "price": 200.79, "over_rate": 0},
                     {"max_sf": 12, "price": 218.80, "over_rate": 18.14}
                 ],
-                "exterior_color": {
+                "exterior_colour": {
                     "base_perc": 0.25,
-                    "color_match_add_on": 200
+                    "colour_match_add_on": 200
                 },
                 "stain": {
                     "interior": 120.00,
@@ -201,7 +201,7 @@ class TestWindowQuoter(unittest.TestCase):
         self.assertEqual(self.quoter.lf, 14)  # 2 * (36 + 48) / 12 = 14 linear feet
         self.assertEqual(self.quoter.window_type, "casement")
         self.assertEqual(self.quoter.interior_finish, "white")
-        self.assertEqual(self.quoter.exterior_color, "standard")
+        self.assertEqual(self.quoter.exterior_colour, "standard")
         self.assertEqual(self.quoter.stain_config.get("interior"), False)
         self.assertEqual(self.quoter.stain_config.get("exterior"), False)
         self.assertEqual(self.quoter.hardware_config.get("egress_hardware"), False)
