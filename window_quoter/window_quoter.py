@@ -74,7 +74,7 @@ class WindowQuoter:
             if exterior_finish is not None and exterior_finish != 'white':
                 if exterior_finish == 'colour':
                     exterior_upcharge = base_p * getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.exterior.colour_base_perc")
-                    unit_breakdown['Exterior colour Upcharge'] = exterior_upcharge
+                    unit_breakdown['Exterior Colour Upcharge'] = exterior_upcharge
                     current_price += exterior_upcharge
                 elif exterior_finish == 'custom_colour':
                     exterior_upcharge = base_p * getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.exterior.colour_base_perc")
