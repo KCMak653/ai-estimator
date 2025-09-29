@@ -314,33 +314,8 @@
             </div>
 
             <div class="form-group">
-                <label>Window Descriptions</label>
-                <div class="windows-section">
-                    <div id="windowsList">
-                        <div class="window-item">
-                            <div class="window-header">
-                                <div style="display: flex; align-items: center; gap: 10px;">
-                                    <span class="window-title">Window 1:</span>
-                                    <span class="control-label">Qty:</span>
-                                    <input type="text" class="small-input" value="1" placeholder="1">
-                                </div>
-                                <button type="button" class="remove-btn" onclick="removeWindow(this)" title="Remove window">×</button>
-                            </div>
-                            <div class="controls-row">
-                                <div class="control-item">
-                                    <span class="control-label">W:</span>
-                                    <input type="text" class="dimension-input" placeholder="36">
-                                </div>
-                                <div class="control-item">
-                                    <span class="control-label">H:</span>
-                                    <input type="text" class="dimension-input" placeholder="48">
-                                </div>
-                            </div>
-                            <textarea class="description-input" placeholder="e.g., casement white interior, black exterior" oninput="autoResize(this)"></textarea>
-                        </div>
-                    </div>
-                    <button type="button" class="add-window-btn" onclick="addWindow()">+ Window</button>
-                </div>
+                <label for="window-descriptions">Window Descriptions</label>
+                <textarea id="window-descriptions" class="description-input" placeholder="Describe all windows, e.g., 3x 36x48 casement, 2x 34x34 awning" oninput="autoResize(this)" style="min-height: 80px;"></textarea>
             </div>
 
             <button type="button" class="quote-btn" onclick="getQuote()" id="quoteBtn">
@@ -357,8 +332,6 @@
     </div>
 
     <script>
-        let windowCount = 1;
-
         function autoResize(textarea) {
             textarea.style.height = 'auto';
             if (textarea.scrollHeight > parseInt(getComputedStyle(textarea).minHeight)) {
@@ -366,92 +339,19 @@
             }
         }
 
-        function addWindow() {
-            windowCount++;
-            const windowsList = document.getElementById('windowsList');
-            
-            const windowDiv = document.createElement('div');
-            windowDiv.className = 'window-item';
-            windowDiv.innerHTML = `
-                <div class="window-header">
-                    <div style="display: flex; align-items: center; gap: 10px;">
-                        <span class="window-title">Window ${windowCount}:</span>
-                        <span class="control-label">Qty:</span>
-                        <input type="text" class="small-input" value="1" placeholder="1">
-                    </div>
-                    <button type="button" class="remove-btn" onclick="removeWindow(this)" title="Remove window">×</button>
-                </div>
-                <div class="controls-row">
-                    <div class="control-item">
-                        <span class="control-label">W:</span>
-                        <input type="text" class="dimension-input" placeholder="36">
-                    </div>
-                    <div class="control-item">
-                        <span class="control-label">H:</span>
-                        <input type="text" class="dimension-input" placeholder="48">
-                    </div>
-                </div>
-                <textarea class="description-input" placeholder="e.g., casement white interior, black exterior" oninput="autoResize(this)"></textarea>
-            `;
-            
-            windowsList.appendChild(windowDiv);
-        }
-
-        function removeWindow(button) {
-            const windowItem = button.closest('.window-item');
-            windowItem.remove();
-            
-            // Renumber windows
-            const windows = document.querySelectorAll('.window-title');
-            windows.forEach((title, index) => {
-                title.textContent = `Window ${index + 1}:`;
-            });
-            windowCount = windows.length;
-        }
-
         async function getQuote() {
             const address = document.getElementById('address').value.trim();
             const projectDescription = document.getElementById('project-description').value.trim();
-            const windowItems = document.querySelectorAll('.window-item');
-            
+            const windowDescriptions = document.getElementById('window-descriptions').value.trim();
+
             // Validation
             if (!address) {
                 alert('Please enter a project address');
                 return;
             }
-            
-            if (windowItems.length === 0) {
-                alert('Please add at least one window');
-                return;
-            }
-            
-            // Build window descriptions object
-            const windowDescriptions = {};
-            let hasValidWindow = false;
-            
-            windowItems.forEach((windowItem, index) => {
-                const qtyInput = windowItem.querySelector('.small-input');
-                const dimensionInputs = windowItem.querySelectorAll('.dimension-input');
-                const textarea = windowItem.querySelector('.description-input');
-                
-                const quantity = qtyInput.value.trim();
-                const width = dimensionInputs[0].value.trim();
-                const height = dimensionInputs[1].value.trim();
-                const description = textarea.value.trim();
-                
-                if (description) {
-                    windowDescriptions[`window_${index + 1}`] = {
-                        quantity: quantity || "1",
-                        width: width || "",
-                        height: height || "",
-                        description: description
-                    };
-                    hasValidWindow = true;
-                }
-            });
-            
-            if (!hasValidWindow) {
-                alert('Please add at least one window description');
+
+            if (!windowDescriptions) {
+                alert('Please enter window descriptions');
                 return;
             }
 
@@ -461,7 +361,7 @@
             document.getElementById('result').innerHTML = '';
 
             try {
-                const response = await fetch('https://quote-api.egressexperts.ca/quote_project', {
+                const response = await fetch('https://f544b4a2c982.ngrok-free.app/quote_project', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
