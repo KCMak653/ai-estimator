@@ -87,7 +87,7 @@ class ValidConfigGenerator:
             return {}
         return config
 
-    def write_yaml_to_file(self, config_string, file_path='window_example.yaml'):
+    def write_yaml_to_file(self, config_string, file_path='window_descriptions.yaml'):
         """
         Write a YAML configuration string directly to a file. For debugging mode only.
         

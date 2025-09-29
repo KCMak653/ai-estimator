@@ -1,0 +1,11 @@
+windows:
+    window_1:
+        quantity: 3
+        width: 36
+        height: 48
+        description: casement
+    window_2:
+        quantity: 1
+        width: 34
+        height: 34
+        description: white white awning

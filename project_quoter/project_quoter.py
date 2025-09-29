@@ -1,9 +1,14 @@
 from window_quoter.window_quoter import WindowQuoter
 from valid_config_generator.valid_config_generator import ValidConfigGenerator
+from .window_description_parser import WindowDescriptionParser
 from typing import List, Dict, Tuple, Union
 from collections import OrderedDict
 import json
 import os
+
+# TODO swap print statements for logging
+# TODO combine valid_config_generator/window_description_parser
+# TODO add width/height bounds
 
 
 class ProjectQuoter:
@@ -36,28 +41,38 @@ class ProjectQuoter:
                 except:
                     pass  # Ignore cleanup errors
             
-    def quote_project(self, project_dict: Dict) -> Tuple[float, Dict]:
+    def quote_project(self, project_dict: Dict, debug_file_prefix: str = "") -> Tuple[float, Dict]:
         """Quote all windows in the project and return total cost and breakdown"""
         failed_configs = []
+        project_breakdown = {}
+        total_cost = 0.0
+        successful_window_num = 0
+        labour_sum = 0
         print(project_dict)
+
+        # Initialize description parser
+        description_parser = WindowDescriptionParser(self.model_name, debug=self.debug)
+        
         # Extract window descriptions and project description
-        window_descriptions = project_dict['window_descriptions']
+        description_debug_path = f"{debug_file_prefix}_window_descriptions.yaml" if debug_file_prefix else "window_descriptions.yaml"
+        window_descriptions = description_parser.generate_window_descriptions(project_dict['window_descriptions'], debug_file_path=description_debug_path)
+        if not window_descriptions:
+            project_breakdown["Error"] = "Unable to separate text description into separate window descriptions. Please add spaces or heading to demonstrate separate windows."
+            return 0, project_breakdown
+
         project_description = project_dict.get('project_description')
         
         # Initialize the config generator
         config_generator = ValidConfigGenerator(self.model_name, debug=self.debug)
-        total_cost = 0.0
-        project_breakdown = {}
-        successful_window_num = 0
-        labour_sum = 0
+        
         # Process each window description with quantity
-        for i, (window_key, window_data) in enumerate(window_descriptions.items(), 1):
+        for i, (window_key, window_data) in enumerate(window_descriptions["windows"].items(), 1):
             quantity = int(window_data['quantity'])
             
             # Format the window description with width, height, and project description
             formatted_description = self.format_window_description(window_data, project_description)
             
-            config_file = f"temp_window_{i}.yaml"
+            config_file = f"{debug_file_prefix}_temp_window_{i}.yaml" if debug_file_prefix else f"temp_window_{i}.yaml"
             print(f"\nProcessing window {i}: {formatted_description} (Quantity: {quantity})")
             
             # Generate and validate config

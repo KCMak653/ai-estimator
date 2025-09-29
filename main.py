@@ -3,45 +3,17 @@ from collections import OrderedDict
 from utils import pretty_print_dict
 
 if __name__ == "__main__":
-    print("Demo: ProjectQuoter with multiple window descriptions")
-    
-    # List of free text descriptions
-    # window_descriptions = [
-    #     "awning 70 x 26, brickmould 2, triple pane",
-    #     # "picture window 40 x 30 triple pane lowe 180, brickmould 1.25",
-    #     # "picture window 40 x 30 triple pane lowe 180, brickmould 1 5/8"
-    #     # "awning window 24 x 36 single pane lowe 180"
-    # ]
-    # window_description_dict = { "window_1":{"description":window_descriptions[0], "quantity":2}}
+    print("Demo: ProjectQuoter with combined window descriptions")
+
+    # Project with combined window descriptions in single string
     project = {
         "project_name": "123 Main Street",
         "project_description": "black black 180/clear",
-        "window_descriptions": {
-            "window_1": {
-            "quantity": "3",
-            "width": "36",
-            "height": "48",
-            "description": "casement / awning / casement"
-            },
-            "window_2": {
-            "quantity": "1",
-            "width": "36",
-            "height": "60",
-            "description": "casement"
-            },
-            "window_3": {
-            "quantity": "1",
-            "width": "36",
-            "height": "60",
-            "description": "casement white white"
-            }
-        }
+        "window_descriptions": "3x 36 x 48 casement, 34x34 white white awning"
     }
     model_name = "gpt-4.1"
-    
-    # print(f"Creating project with {len(window_descriptions)} windows...")
-    
-    # Create project quoter with list of descriptions
+
+    # Create project quoter
     project_quoter = ProjectQuoter(model_name, debug=True)
     
     # Get project quote
