@@ -2,6 +2,13 @@ from flask import Flask, request, jsonify
 from project_quoter import ProjectQuoter
 from flask_cors import CORS
 import os
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 app = Flask(__name__)
 CORS(app, origins="*")
@@ -53,12 +60,12 @@ def quote_project():
     # Create project quoter and get quote
     project_quoter = ProjectQuoter(model_name)
     total_cost, price_breakdown = project_quoter.quote_project(project_dict)
-    print("price_breakdown", price_breakdown)
+    logger.debug(f"price_breakdown: {price_breakdown}")
     json_response = jsonify({
         "project_name": project_name,
         "price_breakdown": price_breakdown
     })
-    print("json_response", json_response)
+    logger.debug(f"json_response: {json_response}")
     return json_response
 
 @app.route('/test', methods=['GET'])

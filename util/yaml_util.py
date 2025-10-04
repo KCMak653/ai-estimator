@@ -23,7 +23,3 @@ def getKey(dic, key_list):
 if __name__ == "__main__":
     print(getKey({"a":{"c":{"d":"1235"}}}, ["a", "c", "f"]))
 
-    # {"a":{"c":{"d"}}} [a,b,c]
-    # dic.get(a)[b,c]
-
-    # dict[a][c], [d]

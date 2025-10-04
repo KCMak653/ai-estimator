@@ -1,5 +1,8 @@
 from llm_io.model_io import ModelIO
 import yaml
+import logging
+
+logger = logging.getLogger(__name__)
 
 class WindowDescriptionParser:
     prompt_instructions = f"""
@@ -39,10 +42,10 @@ class WindowDescriptionParser:
         i = 0
         while errs and i < self.num_retries:
             free_window_config = f"The config {free_text} was provided but the following was invalid. Fix the errors and return the full config: {warnings}"
-            print(f"sending prompt: {free_window_config}")
+            logger.debug(f"Sending retry prompt: {free_window_config}")
             response = self.model.get_response(free_window_config)
             if response is None:
-                print("Did not receive a response")
+                logger.warning("Did not receive a response from model")
                 errs = True
             else:
                 if self.debug:
@@ -55,10 +58,10 @@ class WindowDescriptionParser:
                     warnings = [f"Could not create dict using yaml.safe_load(), reconstruct response to be in yaml format: {e}"]         
             i += 1
         
-        if errs: 
-            print(f"Failed to generate a valid config after {self.num_retries} attempts")
-            print(f"Errors: {errs}")
-            print(f"Warnings: {warnings}")
+        if errs:
+            logger.error(f"Failed to generate a valid config after {self.num_retries} attempts")
+            logger.error(f"Errors: {errs}")
+            logger.error(f"Warnings: {warnings}")
             return {}
         return config
         

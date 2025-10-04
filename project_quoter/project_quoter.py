@@ -5,11 +5,12 @@ from typing import List, Dict, Tuple, Union
 from collections import OrderedDict
 import json
 import os
+import logging
 
-# TODO swap print statements for logging
 # TODO combine valid_config_generator/window_description_parser
 # TODO add width/height bounds
 
+logger = logging.getLogger(__name__)
 
 class ProjectQuoter:
     def __init__(self, model_name: str, pricing_config_path: str = "valid_config_generator/pricing.yaml", debug = False):
@@ -48,7 +49,7 @@ class ProjectQuoter:
         total_cost = 0.0
         successful_window_num = 0
         labour_sum = 0
-        print(project_dict)
+        logger.debug(f"Project dict: {project_dict}")
 
         # Initialize description parser
         description_parser = WindowDescriptionParser(self.model_name, debug=self.debug)
@@ -73,7 +74,7 @@ class ProjectQuoter:
             formatted_description = self.format_window_description(window_data, project_description)
             
             config_file = f"{debug_file_prefix}_temp_window_{i}.yaml" if debug_file_prefix else f"temp_window_{i}.yaml"
-            print(f"\nProcessing window {i}: {formatted_description} (Quantity: {quantity})")
+            logger.info(f"Processing window {i}: {formatted_description} (Quantity: {quantity})")
             
             # Generate and validate config
             config = config_generator.generate_config(formatted_description, debug_file_path=config_file)
@@ -82,7 +83,7 @@ class ProjectQuoter:
                     # Create window quoter with generated config
                     window_cost, window_breakdown = WindowQuoter(config, self.pricing_config_path).quote_window()
                     if 'Error' in window_breakdown.keys():
-                        print(f"✗ Failed to generate price breakdown for window {i}")
+                        logger.error(f"Failed to generate price breakdown for window {i}")
                         failed_configs.append((i, formatted_description, "Price breakdown generation failed"))
                     else:
                         window_key = f"Window {i}"
@@ -96,12 +97,12 @@ class ProjectQuoter:
                         total_window_cost = window_cost * quantity
                         total_cost += total_window_cost
                         successful_window_num += 1
-                        print(f"✓ Successfully created quote for window {i}")
+                        logger.info(f"Successfully created quote for window {i}")
                 except Exception as e:
-                    print(f"✗ Failed to create quote for window {i}: {e}")
+                    logger.error(f"Failed to create quote for window {i}: {e}")
                     failed_configs.append((i, formatted_description, str(e)))
             else:
-                print(f"✗ Failed to generate valid config for window {i}")
+                logger.error(f"Failed to generate valid config for window {i}")
                 failed_configs.append((i, formatted_description, "Config generation failed"))
         
         
@@ -175,13 +176,13 @@ class ProjectQuoter:
                 formatted_window[f'Window Cost (Quantity: {quantity})'] = f"${total_cost:.2f}"
             
             formatted[window_key] = formatted_window
-            print("formatted", formatted)
+            logger.debug(f"Formatted window {window_key}: {formatted}")
 
         
         # Add Failed Windows if it exists
         if 'Failed Windows' in project_breakdown:
             formatted['Failed Windows'] = project_breakdown['Failed Windows']
-        print(project_breakdown)
+        logger.debug(f"Project breakdown: {project_breakdown}")
         if 'Total Window Cost' in project_breakdown:
             formatted['Total Window Cost'] = f"${project_breakdown['Total Window Cost']:.2f}"
         formatted['Labour'] = f"${project_breakdown['Labour']:.2f}"

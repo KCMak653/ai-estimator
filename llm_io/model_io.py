@@ -1,6 +1,9 @@
 from openai import OpenAI
+import logging
 
 # TODO make agnostic to model
+
+logger = logging.getLogger(__name__)
 
 class ModelIO:
     def __init__(self, company_name, model, prompt = None):
@@ -23,7 +26,7 @@ class ModelIO:
             client = OpenAI()
             return client
         except Exception as e:
-            print(f"Error initializing OpenAI client. Is OPENAI_API_KEY set? Error: {e}")
+            logger.error(f"Error initializing OpenAI client. Is OPENAI_API_KEY set? Error: {e}")
             exit()
 
 
@@ -44,5 +47,5 @@ class ModelIO:
             # )
             # return response.choices[0].message['content']
         except Exception as e:
-            print(f"Error in chat completion: {e}")
+            logger.error(f"Error in chat completion: {e}")
             return None

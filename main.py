@@ -1,9 +1,16 @@
 from project_quoter import ProjectQuoter
 from collections import OrderedDict
 from utils import pretty_print_dict
+import logging
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
+logger = logging.getLogger(__name__)
 
 if __name__ == "__main__":
-    print("Demo: ProjectQuoter with combined window descriptions")
+    logger.info("Demo: ProjectQuoter with combined window descriptions")
 
     # Project with combined window descriptions in single string
     project = {
@@ -20,5 +27,5 @@ if __name__ == "__main__":
     total_cost, project_breakdown = project_quoter.quote_project(project)
     
 
-    print("\nProject Breakdown:")
+    logger.info("\nProject Breakdown:")
     pretty_print_dict(project_breakdown)
