@@ -273,6 +273,23 @@
             font-size: 20px;
         }
 
+        .download-pdf-btn {
+            background: #3498db;
+            colour: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            margin-top: 15px;
+            width: 100%;
+        }
+
+        .download-pdf-btn:hover {
+            background: #2980b9;
+        }
+
         .price-breakdown {
             background: white;
             padding: 20px;
@@ -294,6 +311,7 @@
             colour: #2c3e50;
         }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
     <div class="container">
@@ -361,7 +379,7 @@
             document.getElementById('result').innerHTML = '';
 
             try {
-                const response = await fetch('https://f544b4a2c982.ngrok-free.app/quote_project', {
+                const response = await fetch('https://quote-api.egressexperts.ca/quote_project', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -382,6 +400,9 @@
 
                 const data = await response.json();
                 displayResult(data);
+
+                // Store quote data for PDF generation
+                window.currentQuoteData = data;
 
             } catch (error) {
                 displayError(error.message);
@@ -406,6 +427,7 @@
                 html += '</div>';
             }
 
+            html += '<button class="download-pdf-btn" onclick="downloadPDF()">Download as PDF</button>';
             html += '</div>';
             resultDiv.innerHTML = html;
         }
@@ -444,6 +466,82 @@
                     <p><small>Please check your connection and try again, or contact support if the problem persists.</small></p>
                 </div>
             `;
+        }
+
+        function downloadPDF() {
+            if (!window.currentQuoteData) {
+                alert('No quote data available. Please generate a quote first.');
+                return;
+            }
+
+            const { jsPDF } = window.jspdf;
+            const doc = new jsPDF();
+
+            const data = window.currentQuoteData;
+            let yPosition = 20;
+
+            // Title
+            doc.setFontSize(20);
+            doc.setFont(undefined, 'bold');
+            doc.text('Window Project Quote', 20, yPosition);
+            yPosition += 15;
+
+            // Project name
+            doc.setFontSize(14);
+            doc.setFont(undefined, 'normal');
+            doc.text(`Project: ${data.project_name || 'N/A'}`, 20, yPosition);
+            yPosition += 10;
+
+            // Add date
+            doc.setFontSize(10);
+            doc.text(`Generated: ${new Date().toLocaleString()}`, 20, yPosition);
+            yPosition += 15;
+
+            // Price breakdown
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('Price Breakdown:', 20, yPosition);
+            yPosition += 10;
+
+            // Render breakdown recursively
+            yPosition = renderPDFBreakdown(doc, data.price_breakdown, 20, yPosition, 0);
+
+            // Save the PDF
+            const fileName = `${data.project_name || 'quote'}_${new Date().toISOString().split('T')[0]}.pdf`;
+            doc.save(fileName);
+        }
+
+        function renderPDFBreakdown(doc, breakdown, x, y, level) {
+            const indent = level * 10;
+            const maxWidth = 170 - indent;
+
+            for (const [key, value] of Object.entries(breakdown)) {
+                // Check if we need a new page
+                if (y > 270) {
+                    doc.addPage();
+                    y = 20;
+                }
+
+                if (typeof value === 'object' && value !== null) {
+                    // Category header
+                    doc.setFontSize(11);
+                    doc.setFont(undefined, 'bold');
+                    doc.text(key, x + indent, y);
+                    y += 7;
+
+                    // Recursively render nested items
+                    y = renderPDFBreakdown(doc, value, x, y, level + 1);
+                } else {
+                    // Regular item
+                    doc.setFontSize(10);
+                    doc.setFont(undefined, 'normal');
+                    const displayValue = typeof value === 'number' ? value.toLocaleString() : value;
+                    doc.text(`${key}: ${displayValue}`, x + indent, y);
+                    y += 6;
+                }
+            }
+
+            return y;
         }
     </script>
 </body>
