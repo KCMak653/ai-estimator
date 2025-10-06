@@ -59,7 +59,7 @@ def quote_project():
     
     # Create project quoter and get quote
     project_quoter = ProjectQuoter(model_name)
-    total_cost, price_breakdown = project_quoter.quote_project(project_dict)
+    _, price_breakdown = project_quoter.quote_project(project_dict)
     logger.debug(f"price_breakdown: {price_breakdown}")
     json_response = jsonify({
         "project_name": project_name,

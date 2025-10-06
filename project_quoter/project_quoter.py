@@ -90,7 +90,9 @@ class ProjectQuoter:
                         project_breakdown[window_key] = {
                             'cost': window_cost,
                             'breakdown': window_breakdown,
-                            'quantity': quantity
+                            'quantity': quantity,
+                            'width': window_data['width'],
+                            'height': window_data['height']
                         }
                         labour_sum += window_breakdown["labour"]
                         # Add total cost for this window type (unit cost * quantity)
@@ -135,10 +137,16 @@ class ProjectQuoter:
             window_data = project_breakdown[window_key]
             formatted_window = OrderedDict()
             
-            # Add quantity first, then sf, lf
+            # Add quantity first, then dimensions, then sf, lf
             quantity = window_data.get('quantity', 1)
             formatted_window['Quantity'] = quantity
-            
+
+            # Add width and height
+            width = float(window_data['width'])
+            height = float(window_data['height'])
+            formatted_window['Width (in)'] = f"{width:.2f}"
+            formatted_window['Height (in)'] = f"{height:.2f}"
+
             breakdown = window_data['breakdown']
             formatted_window['Square Feet'] = f"{breakdown['sf']:.2f}"
             formatted_window['Linear Feet'] = f"{breakdown['lf']:.2f}"
