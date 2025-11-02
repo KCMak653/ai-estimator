@@ -59,11 +59,16 @@ class WindowQuoter:
             interior_finish = getOrReturnNoneYaml(unit_data, 'interior') 
             exterior_finish = getOrReturnNoneYaml(unit_data, 'exterior')
             interior_finish = "white" if interior_finish is None else interior_finish
+
+            # Price adjustment factor
+            price_adjustment_factor = getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.price_list_adjustment_factor")
+            price_adjustment_factor = price_adjustment_factor if price_adjustment_factor is not None else 1
             
             # 3. Base Price for this unit
             try:
                 base_finish = 'white' if interior_finish == 'stain' else interior_finish
                 base_p = get_base_price(unit_type, base_finish, self.pricing_config, unit_sf)
+                base_p = base_p / price_adjustment_factor
                 unit_breakdown[f'Base Price ({base_finish}, {area_frac:.1%} of window)'] = base_p
                 current_price += base_p
             except ValueError as e:

@@ -33,6 +33,7 @@ casement:
   encore_system: 10.00
   required_addons:
     handle: 10.00
+  price_list_adjustment_factor: 1.4
 
 awning:
   white:
@@ -65,6 +66,7 @@ awning:
   limiters: 10.00
   required_addons:
     handle: 10.00
+  price_list_adjustment_factor: 1.4
 
 fixed_casement:
   white:
@@ -81,6 +83,7 @@ fixed_casement:
     stain_add_on: 50.00
   interior:
     stain_add_on: 70.00
+  price_list_adjustment_factor: 1.4
 
 picture_window:
   white:
@@ -97,6 +100,7 @@ picture_window:
     stain_add_on: 50.00
   interior:
     stain_add_on: 70.00
+  price_list_adjustment_factor: 1.4
 
 single_slider:
   white:
@@ -113,6 +117,7 @@ single_slider:
     colour_base_perc: 0.25
     custom_colour_add_on: 200
     stain_add_on: 60.00
+  price_list_adjustment_factor: 1.4
 
 single_hung:
   white:
@@ -129,6 +134,7 @@ single_hung:
     colour_base_perc: 0.25
     custom_colour_add_on: 200
     stain_add_on: 60.00
+  price_list_adjustment_factor: 1.4
 
 double_end_slider:
   white:
@@ -139,6 +145,7 @@ double_end_slider:
     colour_base_perc: 0.25
     custom_colour_add_on: 200
     stain_add_on: 90.00
+  price_list_adjustment_factor: 1.4
 
 double_hung:
   white:
@@ -155,6 +162,7 @@ double_hung:
     colour_base_perc: 0.25
     custom_colour_add_on: 200
     stain_add_on: 90.00
+  price_list_adjustment_factor: 1.4
 
 double_slider:
   white:
@@ -171,6 +179,7 @@ double_slider:
     colour_base_perc: 0.25
     custom_colour_add_on: 200
     stain_add_on: 90.00
+  price_list_adjustment_factor: 1.4
 
 shapes:
   half_circle: 200.00
