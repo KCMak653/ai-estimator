@@ -13,6 +13,9 @@ import logging
 logger = logging.getLogger(__name__)
 
 class ProjectQuoter:
+
+    EGRESS_EXPERTS_SURCHARGE = 0.37
+
     def __init__(self, model_name: str, pricing_config_path: str = "valid_config_generator/pricing.yaml", debug = False):
         self.pricing_config_path = pricing_config_path
         self.model_name = model_name
@@ -117,8 +120,10 @@ class ProjectQuoter:
             }
         project_breakdown['Quoted Windows'] = len(window_descriptions)
         project_breakdown['Total Window Cost'] = total_cost
-        project_breakdown['Labour'] = labour_sum
-        project_breakdown['Total Project Cost'] = total_cost + labour_sum
+        project_breakdown["Surcharge"] = total_cost * self.EGRESS_EXPERTS_SURCHARGE
+        project_breakdown["Tax (13%)"] = total_cost * self.EGRESS_EXPERTS_SURCHARGE * 0.13
+        # project_breakdown['Labour'] = labour_sum
+        project_breakdown['Total Project Cost'] = total_cost * (1 + self.EGRESS_EXPERTS_SURCHARGE) * (1.13) # + labour_sum
         
         return total_cost, self.format_json(project_breakdown)
 
@@ -193,7 +198,9 @@ class ProjectQuoter:
         logger.debug(f"Project breakdown: {project_breakdown}")
         if 'Total Window Cost' in project_breakdown:
             formatted['Total Window Cost'] = f"${project_breakdown['Total Window Cost']:.2f}"
-        formatted['Labour'] = f"${project_breakdown['Labour']:.2f}"
+        # formatted['Labour'] = f"${project_breakdown['Labour']:.2f}"
+        formatted['Surcharge'] = f"${project_breakdown['Surcharge']:.2f}"
+        formatted['Tax (13%)'] = f"${project_breakdown['Tax (13%)']:.2f}"
         # Add Total Project Cost at the bottom with $ formatting
         if 'Total Project Cost' in project_breakdown:
             formatted['Total Project Cost'] = f"${project_breakdown['Total Project Cost']:.2f}"
