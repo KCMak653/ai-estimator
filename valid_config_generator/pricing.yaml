@@ -31,6 +31,8 @@ casement:
   hinges_add_over_30: 4.00
   limiters: 10.00
   encore_system: 10.00
+  required_addons:
+    handle: 10.00
 
 awning:
   white:
@@ -61,6 +63,8 @@ awning:
     stain_add_on: 140.00
   encore_system: 10.00
   limiters: 10.00
+  required_addons:
+    handle: 10.00
 
 fixed_casement:
   white:

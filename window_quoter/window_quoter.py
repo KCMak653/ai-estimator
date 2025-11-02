@@ -102,10 +102,18 @@ class WindowQuoter:
                     if incl_bool:
                         cost = getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.{hardware}")
                         if cost is not None:
-                            unit_breakdown[f"Hardware: {hardware}"] = cost
+                            unit_breakdown[f"Hardware ({hardware})"] = cost
                             current_price += cost
 
-            # 7. Shape Add-on for this unit
+            
+            # 7. Required Add-on for this unit - not in the unit description, but in the pricing
+            req_add_ons = getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.required_addons")
+            if req_add_ons is not None:
+                for add_on, cost in req_add_ons.items():
+                    unit_breakdown[f"Hardware ({add_on})"] = cost
+                    current_price += cost 
+
+            # 8. Shape Add-on for this unit
             shape_config = getOrReturnNoneYaml(unit_data, 'shapes')
             if shape_config is not None:
                 shape_type = getOrReturnNoneYaml(shape_config, "type")
