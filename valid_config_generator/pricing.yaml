@@ -27,10 +27,13 @@ casement:
     stain_add_on: 120.00
   rotto_corner_drive_1_corner: 20.00
   rotto_corner_drive_2_corners: 45.00
-  egress_hardware: 10.00
+  egress_hardware: 15.00
   hinges_add_over_30: 4.00
   limiters: 10.00
   encore_system: 10.00
+  required_addons:
+    handle: 10.00
+  price_list_adjustment_factor: 1.24
 
 awning:
   white:
@@ -61,6 +64,9 @@ awning:
     stain_add_on: 140.00
   encore_system: 10.00
   limiters: 10.00
+  required_addons:
+    handle: 10.00
+  price_list_adjustment_factor: 1.18
 
 fixed_casement:
   white:
@@ -77,6 +83,7 @@ fixed_casement:
     stain_add_on: 50.00
   interior:
     stain_add_on: 70.00
+  price_list_adjustment_factor: 1.24
 
 picture_window:
   white:
@@ -93,6 +100,7 @@ picture_window:
     stain_add_on: 50.00
   interior:
     stain_add_on: 70.00
+  price_list_adjustment_factor: 1.24
 
 single_slider:
   white:
@@ -109,6 +117,7 @@ single_slider:
     colour_base_perc: 0.25
     custom_colour_add_on: 200
     stain_add_on: 60.00
+  price_list_adjustment_factor: 1.25
 
 single_hung:
   white:
@@ -125,6 +134,7 @@ single_hung:
     colour_base_perc: 0.25
     custom_colour_add_on: 200
     stain_add_on: 60.00
+  price_list_adjustment_factor: 1.25
 
 double_end_slider:
   white:
@@ -135,6 +145,7 @@ double_end_slider:
     colour_base_perc: 0.25
     custom_colour_add_on: 200
     stain_add_on: 90.00
+  price_list_adjustment_factor: 1.363
 
 double_hung:
   white:
@@ -151,6 +162,7 @@ double_hung:
     colour_base_perc: 0.25
     custom_colour_add_on: 200
     stain_add_on: 90.00
+  price_list_adjustment_factor: 1.363
 
 double_slider:
   white:
@@ -167,6 +179,7 @@ double_slider:
     colour_base_perc: 0.25
     custom_colour_add_on: 200
     stain_add_on: 90.00
+  price_list_adjustment_factor: 1.363
 
 shapes:
   half_circle: 200.00
