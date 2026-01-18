@@ -11,7 +11,7 @@ class ValidConfigGenerator:
     additional_context = open("valid_config_generator/custom_context.txt", "r").read()
 
     prompt_instructions = f"""
-        You are a helpful assistant that converts free-form specifications on a quote sheet for window replacements to a yaml format with constrained keys.
+        You are a helpful assistant that converts free-form specifications on a quote sheet for window projects to a yaml format with constrained keys.
         Return in text the .yaml file for inspection
 
         A window is made up of one or more units. Each unit has its own unit_type and associated config for the unit. The width and length
