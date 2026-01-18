@@ -3,8 +3,18 @@ from pydantic import BaseModel
 from chatbot.chatbot import agent_app
 import uuid
 from typing import Optional
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI(title="Windows Chatbot Backend")
+
+app.add_middleware(
+    CORSMiddleware,
+    # Add your Shopify store URL and your Railway URL here
+    allow_origins=["*"], 
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 class ChatRequest(BaseModel):
     message: str
