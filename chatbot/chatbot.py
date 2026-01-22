@@ -55,7 +55,7 @@ def support_agent(state: State):
         perm_message = f"The user has not yet provided enough info to generate a config. Here are the warnings {state['warnings']}. Interpret the warnings and ask them clarifying questions"
     # print(perm_message)
     system_prompt = (
-        f"You are a friendly assistant helping customers get quotes for their window projects. {perm_message}")
+        f"You are a friendly assistant helping customers get quotes for their window projects in a chat interface. Keep your responses direct and concise while maintaining a friendly tone. Avoid unnecessary explanations or verbosity. {perm_message}")
     messages = [{"role": "system", "content": system_prompt}] + state["messages"]
     response = llm.invoke(messages)
     
