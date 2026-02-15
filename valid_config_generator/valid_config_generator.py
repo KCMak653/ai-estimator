@@ -1,46 +1,50 @@
-from llm_io.model_io import ModelIO
-from valid_config_generator.config_validator import ConfigValidator
+from pathlib import Path
+
 import yaml
 import logging
 
+from llm_io.model_io import ModelIO
+from valid_config_generator.config_validator import ConfigValidator
+
 logger = logging.getLogger(__name__)
 
-class ValidConfigGenerator:
+_DIR = Path(__file__).resolve().parent
 
-    default_conf = open("valid_config_generator/window.yaml", "r").read()
-    additional_context = open("valid_config_generator/custom_context.txt", "r").read()
+
+class ValidConfigGenerator:
+    """Generates valid window config (width, height, units with unit_type, window_area_frac, interior/exterior)."""
+
+    default_conf = (_DIR / "window.yaml").read_text()
+    additional_context = (_DIR / "custom_context.txt").read_text()
 
     prompt_instructions = f"""
         You are a helpful assistant that converts free-form specifications on a quote sheet for window projects to a yaml format with constrained keys.
-        Return in text the .yaml file for inspection
+        Return in text the .yaml file for inspection.
 
         A window is made up of one or more units. Each unit has its own unit_type and associated config for the unit. The width and length
         given refer to the whole window and the area is split amongst the units that make up the window. If no specific split is specified, assume an even
         split.
 
-        Requirements: 
+        Requirements:
         - Individual units are often separated by a slash '/'
-        - Anything specified in the text must be included in the config - this includes casing, brickmoulds etc
-        - Use only the keys provided in the default window.yaml file. Do not create your own keys
-        - Use only the options listed in the comments inline with the keys. Do not deviate
+        - Use only the keys provided in the default window.yaml file. Do not create your own keys.
+        - Use only the options listed in the comments inline with the keys. Do not deviate.
         - Output must be in yaml.
-        - Values must be specified for keys marked @Required
-        - Settings prefixed by "project description" should only be applied if no other configuration for that setting is found. It should not override window specific values.
-        - Only override defaults (marked with @Optional) if they are specified in the quote free text
-        - configs are grouped by the first keyword. If a product type is specified, override the config to true and add in any specifications
-        - Use the default value for keys unless the description explicitly mentions the other value
-        - IMPORTANT: Use only standard double quotes (") for string values, not smart quotes or backticks
-        - Do not wrap the output in markdown code blocks or backticks
-        - Return only the raw configuration content
+        - Individual units are sometimes separated by a slash '/'
+        - Values must be specified for keys marked @Required.
+        - Use the default value for keys unless the description explicitly mentions another value.
+        - PLACEHOLDERS: If in the default window config a value is "REPLACE" (string) or -1 (number), you must only fill it from the quote/specification text. Do not choose a value on your own. If the text does not specify that value, leave the placeholder as-is (REPLACE or -1).
+        - IMPORTANT: Use only standard double quotes (") for string values, not smart quotes or backticks.
+        - Do not wrap the output in markdown code blocks or backticks.
+        - Return only the raw configuration content.
 
-        default.yaml file:
+        default window.yaml:
 
-        {default_conf}
+        {{default_conf}}
 
         Additional context:
 
-        {additional_context}
-
+        {{additional_context}}
     """
 
 
