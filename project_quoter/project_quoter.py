@@ -1,5 +1,6 @@
 from window_quoter.window_quoter import WindowQuoter
 from valid_config_generator.valid_config_generator import ValidConfigGenerator
+from llm_io.model_io import ModelIO
 from .window_description_parser import WindowDescriptionParser
 from typing import List, Dict, Tuple, Union
 from collections import OrderedDict
@@ -55,7 +56,8 @@ class ProjectQuoter:
         logger.debug(f"Project dict: {project_dict}")
 
         # Initialize description parser
-        description_parser = WindowDescriptionParser(self.model_name, debug=self.debug)
+        model_io = ModelIO("openai", self.model_name, WindowDescriptionParser.prompt_instructions)
+        description_parser = WindowDescriptionParser(model_io, debug=self.debug)
         
         # Extract window descriptions and project description
         description_debug_path = f"{debug_file_prefix}_window_descriptions.yaml" if debug_file_prefix else "window_descriptions.yaml"

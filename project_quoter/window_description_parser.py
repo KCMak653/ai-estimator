@@ -4,6 +4,7 @@ import logging
 
 logger = logging.getLogger(__name__)
 
+
 class WindowDescriptionParser:
     prompt_instructions = f"""
     You are a helpful assistant that converts a large freetext blob into individual window configurations.
@@ -20,16 +21,16 @@ class WindowDescriptionParser:
 
     """
     
-    def __init__(self, model_name, debug=False, num_retries=2):
-        self.model = ModelIO("openai", model_name, self.generate_prompt())
+    def __init__(self, model_io: ModelIO, debug=False, num_retries=2):
+        self.model = model_io
         self.debug = debug
         self.num_retries = num_retries
 
     def generate_prompt(self):
         return self.prompt_instructions
-    
-    def generate_window_descriptions(self, free_text, debug_file_path = ""):
-        response = self.model.get_response(free_text)
+
+    def generate_window_descriptions(self, messages, debug_file_path=""):
+        response = self.model.get_response(message=messages) if isinstance(messages, str) else self.model.get_response(messages=messages)
         if self.debug:
             self.write_yaml_to_file(response, debug_file_path)
         try:
@@ -37,13 +38,17 @@ class WindowDescriptionParser:
             errs, warnings = self.validate_config(config)
         except yaml.YAMLError as e:
             errs = True
-            warnings = [f"Could not create dict using yaml.safe_load(), reconstruct response to be in yaml format: {e}"] 
-        free_window_config = free_text
+            warnings = [f"Could not create dict using yaml.safe_load(), reconstruct response to be in yaml format: {e}"]
+        retry_messages = list(messages)
         i = 0
         while errs and i < self.num_retries:
-            free_window_config = f"The config {free_text} was provided but the following was invalid. Fix the errors and return the full config: {warnings}"
-            logger.debug(f"Sending retry prompt: {free_window_config}")
-            response = self.model.get_response(free_window_config)
+            if isinstance(retry_messages, list):
+                retry_messages = retry_messages + [{"role": "user", "content": f"The previous response was invalid. Fix the errors and return the full config: {warnings}"}]
+                response = self.model.get_response(messages=retry_messages)
+            else:
+                retry_input = f"{messages}\n\nThe previous response was invalid. Fix the errors and return the full config: {warnings}"
+                response = self.model.get_response(message=retry_input)
+            logger.debug("Sending retry...")
             if response is None:
                 logger.warning("Did not receive a response from model")
                 errs = True
