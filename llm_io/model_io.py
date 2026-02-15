@@ -74,7 +74,6 @@ class ModelIO:
             to_invoke = messages_lc
         if self.prompt:
             to_invoke = [SystemMessage(content=self.prompt)] + to_invoke
-        print(to_invoke)
         try:
             return self.llm.invoke(to_invoke)
         except Exception as e:
