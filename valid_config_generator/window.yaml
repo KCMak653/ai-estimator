@@ -5,7 +5,7 @@ height: -1 # in inches @Required
 ################################################
 units: # Refers to units that make up the window
   unit_<N>: #Fill in N with the window number, start at 1 and increase consecutively
-    unit_type: 'REPLACE' # @Required Enum: casement, awning, picture_window, fixed_casement
+    unit_type: 'REPLACE' # @Required Enum: casement, awning, picture_window, fixed_casement. Leave as REPLACE if user did not specify type.
     window_area_frac: 1 # @Required The fraction of the window that the unit represents. Default - if 1 unit = 1, if 2 units = 0.5, if 3 units = 0.333
 
   # Depending on the unit type include the additional settings.

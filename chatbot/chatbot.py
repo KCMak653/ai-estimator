@@ -10,6 +10,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from langgraph.prebuilt import ToolNode
 from .config_generator.config_generator_prompt import *
 import yaml
+from llm_io.model_io import ModelIO
 from valid_config_generator.valid_config_generator import ValidConfigGenerator
 from window_quoter.window_quoter import WindowQuoter
 from project_quoter.window_description_parser import WindowDescriptionParser
@@ -80,14 +81,15 @@ def config_validator(state: State):
         
         # Use WindowDescriptionParser to generate window descriptions
         parser = WindowDescriptionParser(model_name="gpt-4o-mini")
-        window_descriptions = parser.generate_window_descriptions(last_response)
+        errs, warnings, window_descriptions = parser.generate_window_descriptions(last_response)
         
         # Check if window descriptions were successfully generated
-        if not window_descriptions:
+        if errs or not window_descriptions:
             return {"config_valid": False, "warnings": ["Unable to parse window descriptions from the provided configuration."]}
         
         # Validate the generated window descriptions with ValidConfigGenerator
-        generator = ValidConfigGenerator("gpt-4.1", debug=True)
+        model_io = ModelIO("openai", "gpt-4.1", ValidConfigGenerator.generate_prompt())
+        generator = ValidConfigGenerator(model_io, debug=True)
         errs, warnings = generator.validate_config(config)
         
         if not errs:

@@ -1,10 +1,11 @@
 from pathlib import Path
 
-import yaml
 import logging
+import yaml
 
-from llm_io.model_io import ModelIO
+from langchain_core.messages import BaseMessage, HumanMessage
 from valid_config_generator.config_validator import ConfigValidator
+from utils import strip_markdown_fences
 
 logger = logging.getLogger(__name__)
 
@@ -27,14 +28,19 @@ class ValidConfigGenerator:
 
         Requirements:
         - Individual units are often separated by a slash '/'
+        - Treat duplicate types as separate units; do not deduplicate (e.g. fixed/fixed/awning is three units - unit_1 fixed, unit_2 fixed, unit_3 awning - not two).
         - Use only the keys provided in the default window.yaml file. Do not create your own keys.
         - Use only the options listed in the comments inline with the keys. Do not deviate.
-        - Output must be in yaml.
+        - Output must be valid YAML: one key-value pair per line. Do not put multiple keys on one line (e.g. no "key1: a, key2: b").
         - Individual units are sometimes separated by a slash '/'
         - Values must be specified for keys marked @Required.
         - Use the default value for keys unless the description explicitly mentions another value.
         - PLACEHOLDERS: If in the default window config a value is "REPLACE" (string) or -1 (number), you must only fill it from the quote/specification text. Do not choose a value on your own. If the text does not specify that value, leave the placeholder as-is (REPLACE or -1).
+        - width/height: Only set width and height when they are explicitly provided in the specification. If the specification does not include dimensions, set width and height to -1.
+        - unit_type (window type): Do NOT infer or guess. Only set unit_type when the user explicitly specifies a type (e.g. casement, double hung, picture window). If the user did not specify the window type, leave unit_type as "REPLACE".
+        - interior/exterior: When the user specifies a paint colour (e.g. black, grey, brown) for interior or exterior, set that field to "colour" for every unit that has that field. Apply the same value to all units in the window. Only use "white" when they explicitly say white or do not specify a colour.
         - IMPORTANT: Use only standard double quotes (") for string values, not smart quotes or backticks.
+        - Do not include colons inside string values (e.g. in description use "Single window with 3 units - fixed/fixed/awning" not "3 units: fixed"); colons break YAML.
         - Do not wrap the output in markdown code blocks or backticks.
         - Return only the raw configuration content.
 
@@ -48,51 +54,64 @@ class ValidConfigGenerator:
     """
 
 
-    def __init__(self, model_name, debug = False, num_retries=2):
-        self.model = ModelIO("openai", model_name, self.generate_prompt())
+    def __init__(self, model_io, debug=False, num_retries=2):
+        self.model = model_io
         self.config_validator = ConfigValidator()
         self.debug = debug
         self.num_retries = num_retries
-    
-    def generate_prompt(self, default_conf=default_conf, additional_context=additional_context):
-        return self.prompt_instructions.format(default_conf=default_conf, additional_context=additional_context)
 
-    def generate_config(self, free_text, debug_file_path = ""):
-        response = self.model.get_response(free_text)
+    @classmethod
+    def generate_prompt(cls, default_conf=None, additional_context=None):
+        default_conf = default_conf if default_conf is not None else cls.default_conf
+        additional_context = additional_context if additional_context is not None else cls.additional_context
+        return cls.prompt_instructions.format(default_conf=default_conf, additional_context=additional_context)
+
+    def generate_config(self, messages, debug_file_path=""):
+        config = {}
+        response = self.model.get_response(message=messages) if isinstance(messages, str) else self.model.get_response(messages_lc=messages)
+        if response is None:
+            return True, ["No response from model"], {}
+        response_content = response.content if isinstance(response, BaseMessage) else response
+        response_content = strip_markdown_fences(response_content)
         if self.debug:
-            self.write_yaml_to_file(response, debug_file_path)
+            self.write_yaml_to_file(response_content, debug_file_path)
         try:
-            config = yaml.safe_load(response)
+            config = yaml.safe_load(response_content)
             errs, warnings = self.validate_config(config)
         except yaml.YAMLError as e:
             errs = True
-            warnings = [f"Could not create dict using yaml.safe_load(), reconstruct response to be in yaml format: {e}"] 
-        free_window_config = free_text
+            warnings = [f"Could not create dict using yaml.safe_load(), reconstruct response to be in yaml format: {e}"]
+        retry_messages = messages
         i = 0
         while errs and i < self.num_retries:
-            free_window_config = f"The config {free_text} was provided but the following was invalid. Fix the errors and return the full config: {warnings}"
-            logger.debug(f"Sending retry prompt: {free_window_config}")
-            response = self.model.get_response(free_window_config)
+            if isinstance(retry_messages, list):
+                retry_messages = retry_messages + [HumanMessage(content=f"The previous response was invalid. Fix the errors and return the full config: {warnings}")]
+                response = self.model.get_response(messages_lc=retry_messages)
+            else:
+                retry_input = f"{messages}\n\nThe previous response was invalid. Fix the errors and return the full config: {warnings}"
+                response = self.model.get_response(message=retry_input)
+            logger.debug("Sending retry...")
             if response is None:
                 logger.warning("Did not receive a response from model")
                 errs = True
             else:
+                response_content = response.content if isinstance(response, BaseMessage) else response
+                response_content = strip_markdown_fences(response_content)
                 if self.debug:
-                    self.write_yaml_to_file(response, debug_file_path)
+                    self.write_yaml_to_file(response_content, debug_file_path)
                 try:
-                    config = yaml.safe_load(response)
+                    config = yaml.safe_load(response_content)
                     errs, warnings = self.validate_config(config)
                 except yaml.YAMLError as e:
                     errs = True
-                    warnings = [f"Could not create dict using yaml.safe_load(), reconstruct response to be in yaml format: {e}"]         
+                    warnings = [f"Could not create dict using yaml.safe_load(), reconstruct response to be in yaml format: {e}"]
             i += 1
-        
+
         if errs:
             logger.error(f"Failed to generate a valid config after {self.num_retries} attempts")
             logger.error(f"Errors: {errs}")
             logger.error(f"Warnings: {warnings}")
-            return {}
-        return config
+        return errs, warnings, config
 
     def write_yaml_to_file(self, config_string, file_path='window_descriptions.yaml'):
         """

@@ -1,6 +1,9 @@
-from llm_io.model_io import ModelIO
-import yaml
 import logging
+import yaml
+
+from langchain_core.messages import BaseMessage
+from llm_io.model_io import ModelIO
+from utils import strip_markdown_fences
 
 logger = logging.getLogger(__name__)
 
@@ -14,11 +17,14 @@ class WindowDescriptionParser:
     windows:
         window_<N>: # Fill in N with the window number
             quantity: # Number of windows in this config @Required
-            width: # in inches @Required
-            height: # in inches @Required
+            width: # in inches. Only include when the user has specified dimensions for this window; omit if they did not.
+            height: # in inches. Only include when the user has specified dimensions for this window; omit if they did not.
             description: # Include any description text associated with this window
-    
 
+    When the user uses a slash "/" between window types (e.g. "fixed/fixed/casement" or "fixed / fixed / awning"), that means a single window with multiple units, not multiple separate windows. Output one window entry and a description that explicitly states it is a multi-unit configuration, e.g. "Multi-unit - fixed/fixed/casement" or "Single window with 3 units - fixed/fixed/awning".
+    Do not include colons inside description (or any string) values; use a dash or comma instead (e.g. "3 units - fixed/fixed/awning" not "3 units: fixed"). Colons break YAML.
+    Do not set width or height unless the user explicitly specified dimensions (e.g. "36 x 48") for that window. If the user only specified window types (e.g. fixed/fixed/awning) or other details without dimensions, omit width and height for that window.
+    Do not wrap the output in markdown code blocks or backticks. Return only the raw YAML.
     """
     
     def __init__(self, model_io: ModelIO, debug=False, num_retries=2):
@@ -30,21 +36,26 @@ class WindowDescriptionParser:
         return self.prompt_instructions
 
     def generate_window_descriptions(self, messages, debug_file_path=""):
-        response = self.model.get_response(message=messages) if isinstance(messages, str) else self.model.get_response(messages=messages)
+        config = {}
+        response = self.model.get_response(message=messages) if isinstance(messages, str) else self.model.get_response(messages_lc=messages)
+        if response is None:
+            return True, ["No response from model"], {}
+        response_content = response.content if isinstance(response, BaseMessage) else response
+        response_content = strip_markdown_fences(response_content)
         if self.debug:
-            self.write_yaml_to_file(response, debug_file_path)
+            self.write_yaml_to_file(response_content, debug_file_path)
         try:
-            config = yaml.safe_load(response)
+            config = yaml.safe_load(response_content)
             errs, warnings = self.validate_config(config)
         except yaml.YAMLError as e:
             errs = True
             warnings = [f"Could not create dict using yaml.safe_load(), reconstruct response to be in yaml format: {e}"]
-        retry_messages = list(messages)
+        retry_messages = messages
         i = 0
         while errs and i < self.num_retries:
             if isinstance(retry_messages, list):
                 retry_messages = retry_messages + [{"role": "user", "content": f"The previous response was invalid. Fix the errors and return the full config: {warnings}"}]
-                response = self.model.get_response(messages=retry_messages)
+                response = self.model.get_response(messages_lc=retry_messages)
             else:
                 retry_input = f"{messages}\n\nThe previous response was invalid. Fix the errors and return the full config: {warnings}"
                 response = self.model.get_response(message=retry_input)
@@ -53,22 +64,23 @@ class WindowDescriptionParser:
                 logger.warning("Did not receive a response from model")
                 errs = True
             else:
+                response_content = response.content if isinstance(response, BaseMessage) else response
+                response_content = strip_markdown_fences(response_content)
                 if self.debug:
-                    self.write_yaml_to_file(response, debug_file_path)
+                    self.write_yaml_to_file(response_content, debug_file_path)
                 try:
-                    config = yaml.safe_load(response)
+                    config = yaml.safe_load(response_content)
                     errs, warnings = self.validate_config(config)
                 except yaml.YAMLError as e:
                     errs = True
-                    warnings = [f"Could not create dict using yaml.safe_load(), reconstruct response to be in yaml format: {e}"]         
+                    warnings = [f"Could not create dict using yaml.safe_load(), reconstruct response to be in yaml format: {e}"]
             i += 1
-        
+
         if errs:
             logger.error(f"Failed to generate a valid config after {self.num_retries} attempts")
             logger.error(f"Errors: {errs}")
             logger.error(f"Warnings: {warnings}")
-            return {}
-        return config
+        return errs, warnings, config
         
     
     def validate_config(self, config: dict):
@@ -84,7 +96,6 @@ class WindowDescriptionParser:
             tuple: (errors_exist: bool, errors: list)
         """
         errors = []
-        warnings = []
 
         # Check if 'windows' is top level key
         if 'windows' not in config:
@@ -115,10 +126,8 @@ class WindowDescriptionParser:
                 errors.append(f"Window '{window_key}' data must be a dictionary")
                 continue
 
-            # Check width exists and is positive
-            if 'width' not in window_data:
-                errors.append(f"Window '{window_key}' missing required 'width' field")
-            else:
+            # Check width if present (optional; only validate when provided)
+            if 'width' in window_data:
                 try:
                     width = float(window_data['width'])
                     if width <= 0:
@@ -126,16 +135,20 @@ class WindowDescriptionParser:
                 except (ValueError, TypeError):
                     errors.append(f"Window '{window_key}' width must be a number, got {type(window_data['width'])}")
 
-            # Check height exists and is positive
-            if 'height' not in window_data:
-                errors.append(f"Window '{window_key}' missing required 'height' field")
-            else:
+            # Check height if present (optional; only validate when provided)
+            if 'height' in window_data:
                 try:
                     height = float(window_data['height'])
                     if height <= 0:
                         errors.append(f"Window '{window_key}' height must be positive, got {height}")
                 except (ValueError, TypeError):
                     errors.append(f"Window '{window_key}' height must be a number, got {type(window_data['height'])}")
+
+            # Warn when dimensions are missing
+            if 'width' not in window_data:
+                errors.append(f"Window '{window_key}' has no width specified")
+            if 'height' not in window_data:
+                errors.append(f"Window '{window_key}' has no height specified")
 
             # Check description is a string
             if 'description' not in window_data:

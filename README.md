@@ -39,11 +39,13 @@ An intelligent window replacement quoting system that converts natural language 
 ### Single Window Quote
 
 ```python
+from llm_io.model_io import ModelIO
 from valid_config_generator.valid_config_generator import ValidConfigGenerator
 from window_quoter.window_quoter import WindowQuoter
 
 # Generate configuration from natural language
-generator = ValidConfigGenerator("gpt-4.1")
+model_io = ModelIO("openai", "gpt-4.1", ValidConfigGenerator.generate_prompt())
+generator = ValidConfigGenerator(model_io)
 generator.generate_config("casement window 36x48 double pane lowe 180", "window.yaml")
 
 # Generate quote
