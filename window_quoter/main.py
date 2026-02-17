@@ -1,86 +1,77 @@
+"""Run WindowQuoter with a simplified window config (width, height, units only)."""
 
-import sys
 import os
+import sys
 import yaml
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from window_quoter.window_quoter import WindowQuoter
-from utils import pretty_print_dict
+
+
+def pretty_print_breakdown(breakdown, indent=0):
+    for key, value in breakdown.items():
+        if isinstance(value, dict):
+            print("  " * indent + f"{key}:")
+            pretty_print_breakdown(value, indent + 1)
+        else:
+            print("  " * indent + f"{key}: {value}")
+
 
 if __name__ == "__main__":
-    # Multi-unit sample configuration for testing
-    multi_unit_config = {
-        'width': 60,
-        'height': 40,
-        'units': {
-            'unit_1': {
-                'unit_type': 'casement',
-                'window_area_frac': 0.5,
-                'interior': 'white',
-                'exterior': 'colour',
-                'hardware': {
-                    'rotto_corner_drive_1_corner': True,
-                    'limiters': True
-                },
-                'glass': {
-                    'type': 'double',
-                    'subtype': 'lowe_180',
-                    'thickness_mm': 4
-                },
-                'shapes': {
-                    'type': 'half_circle',
-                    'extras': {
-                        'brickmould': True
-                    }
-                }
-            },
-            'unit_2': {
-                'unit_type': 'awning',
-                'window_area_frac': 0.3,
-                'interior': 'stain',
-                'exterior': 'stain',
-                'hardware': {
-                    'encore_system': True
-                },
-                'glass': {
-                    'type': 'triple',
-                    'subtype': 'lowe_180_clear_clear',
-                    'thickness_mm': 4
-                }
-            },
-            'unit_3': {
-                'unit_type': 'picture_window',
-                'window_area_frac': 0.2,
-                'interior': 'colour',
-                'exterior': 'custom_colour',
-                'glass': {
-                    'type': 'double',
-                    'subtype': 'lowe_272',
-                    'thickness_mm': 4
-                }
+    # Simplified config: width, height, units (unit_type, window_area_frac, interior, exterior; optional hardware)
+    config = {
+        "width": 45,
+        "height": 56,
+        "units": {
+            "unit_1": {
+                "unit_type": "casement",
+                "window_area_frac": 1,
+                "interior": "white",
+                "exterior": "white",
             }
         },
-        'brickmould': {
-            'include': True,
-            'size': '1_5_8',
-            'finish': 'white'
-        },
-        'casing_extension': {
-            'type': 'vinyl_pkg_2_3_8_casing_3_1_2',
-            'finish': 'white'
-        }
     }
-    
-    print("Testing WindowQuoter with multi-unit configuration...")
-    print(f"Configuration: {yaml.dump(multi_unit_config, default_flow_style=False)}")
-    
-    # Initialize the quoter
-    pricing_config_path = "valid_config_generator/pricing.yaml"
-    quoter = WindowQuoter(multi_unit_config, pricing_config_path)
-    
-    # Get the quote
-    total_price, breakdown = quoter.quote_window()
-    
-    print(f"\nTotal Price: ${total_price}")
-    print("\nPrice Breakdown:")
-    pretty_print_dict(breakdown)
+
+    # Optional: multi-unit example
+    # config = {
+    #     "width": 60,
+    #     "height": 40,
+    #     "units": {
+    #         "unit_1": {
+    #             "unit_type": "fixed_casement",
+    #             "window_area_frac": 0.333,
+    #             "interior": "white",
+    #             "exterior": "white",
+    #         },
+    #         "unit_2": {
+    #             "unit_type": "fixed_casement",
+    #             "window_area_frac": 0.333,
+    #             "interior": "white",
+    #             "exterior": "white",
+    #         },
+    #         "unit_3": {
+    #             "unit_type": "casement",
+    #             "window_area_frac": 0.334,
+    #             "interior": "colour",
+    #             "exterior": "colour",
+    #         },
+    #     },
+    # }
+
+    pricing_path = os.path.join(
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+        "valid_config_generator",
+        "pricing.yaml",
+    )
+
+    print("Config:")
+    print(yaml.dump(config, default_flow_style=False, sort_keys=False))
+    print("-" * 40)
+
+    quoter = WindowQuoter(config, pricing_path)
+    total, breakdown = quoter.quote_window()
+
+    print(f"Total: ${total:,.2f}")
+    print("Breakdown:")
+    pretty_print_breakdown(breakdown)

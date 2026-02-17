@@ -91,81 +91,41 @@ class WindowQuoter:
                     unit_breakdown['Interior Stain Add-on'] = stain_cost
                     current_price += stain_cost
 
-            # 6. Hardware Options for this unit
-            hardware_config = getOrReturnNoneYaml(unit_data, 'hardware')
-            if hardware_config:
-                for hardware, incl_bool in hardware_config.items():
-                    if incl_bool:
-                        cost = getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.{hardware}")
-                        if cost is not None:
-                            unit_breakdown[f"Hardware ({hardware})"] = cost
-                            current_price += cost
-
-            
-            # 7. Required Add-on for this unit - not in the unit description, but in the pricing
-            req_add_ons = getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.required_addons")
-            if req_add_ons is not None:
-                for add_on, cost in req_add_ons.items():
-                    unit_breakdown[f"Hardware ({add_on})"] = cost
-                    current_price += cost 
-
+   
         return current_price, price_breakdown
 
-    def quote_glass(self, price_breakdown = {}, current_price = 0.0):
-        if self.units is None:
-            price_breakdown['Error'] = "No units configuration found."
-            return 0, price_breakdown
-        
-        # Process glass for each unit
-        for unit_key, unit_data in self.units.items():
-            if not unit_key.startswith('unit_'):
-                continue
-                
-            unit_type = getOrReturnNoneYaml(unit_data, 'unit_type')
-            glass_config = getOrReturnNoneYaml(unit_data, 'glass')
-
-            # Simplified config may omit glass; skip this unit for glass pricing without error
-            if glass_config is None:
-                continue
-
-            area_frac = getOrReturnNoneYaml(unit_data, 'window_area_frac')
-            unit_sf = self.sf * area_frac
-            
-            # Create or access nested breakdown for this unit
-            unit_name = f"{unit_key} - {unit_type}"
-
-            if unit_name not in price_breakdown:
-                price_breakdown[unit_name] = {}
-            unit_breakdown = price_breakdown[unit_name]
-            
-            glass_type = getOrReturnNoneYaml(glass_config, 'type')
-            glass_subtype = getOrReturnNoneYaml(glass_config, 'subtype')
-            glass_thickness = getOrReturnNoneYaml(glass_config, 'thickness_mm')
-            min_sf = getOrReturnNoneYaml(self.pricing_config, f"glass.{glass_type}.min_size_sf")
-            
-            # Get the glass price brackets for the specific subtype
-            glass_price_brackets = getOrReturnNoneYaml(self.pricing_config, f"glass.{glass_type}.{glass_subtype}")
-
-            if glass_price_brackets is None:
-                unit_breakdown['Error'] = f"Glass pricing not found for {glass_type}.{glass_subtype}"
-                continue
-                
-            # Find the matching thickness bracket
-            glass_price_unit = None
-            for bracket in glass_price_brackets:
-                if getOrReturnNoneYaml(bracket, 'thickness') == glass_thickness:
-                    glass_price_unit = getOrReturnNoneYaml(bracket, 'price')
+    def quote_glass(self, price_breakdown=None, current_price=0.0):
+        """Glass price by window sq footage; glass config is tiered (flat + per_sf_rate per tier)."""
+        if price_breakdown is None:
+            price_breakdown = {}
+        glass_brackets = self.pricing_config.get("glass")
+        if glass_brackets is None or self.sf <= 0:
+            return current_price, price_breakdown
+        try:
+            sorted_brackets = sorted(glass_brackets, key=lambda x: x.get("max_sf"))
+            total = 0
+            prev_max = 0
+            for bracket in sorted_brackets:
+                max_val = bracket.get("max_sf")
+                price = bracket.get("price", 0)
+                rate = bracket.get("per_sf_rate", 0)
+                if self.sf <= prev_max:
                     break
-                    
-            if glass_price_unit is None:
-                unit_breakdown['Error'] = f"Glass price not found for thickness {glass_thickness}mm"
-                continue
-
-            # Calculate base glass price for this unit
-            glass_price = glass_price_unit * max(unit_sf, min_sf)
-            current_price += glass_price
-            unit_breakdown[f"Glass Base Price ({glass_type} {glass_subtype} {glass_thickness}mm)"] = glass_price
-
+                amount_in_tier = min(self.sf, max_val) - prev_max
+                if amount_in_tier <= 0:
+                    prev_max = max_val
+                    continue
+                if rate > 0:
+                    total += amount_in_tier * rate
+                else:
+                    total += price
+                prev_max = max_val
+                if self.sf <= max_val:
+                    break
+            price_breakdown["Glass"] = total
+            current_price += total
+        except Exception as e:
+            price_breakdown["Error - Glass"] = str(e)
         return current_price, price_breakdown
 
     def quote_labour(self, price_breakdown = {}):
@@ -181,39 +141,7 @@ class WindowQuoter:
 
         current_price, price_breakdown = self.quote_frame(price_breakdown, current_price)
         current_price, price_breakdown = self.quote_glass(price_breakdown, current_price)
-        price_breakdown = self.quote_labour(price_breakdown)  # labour does not get added to window price
+        # price_breakdown = self.quote_labour(price_breakdown)  # labour does not get added to window price
 
         return current_price, price_breakdown
 
-"""
-                ## TODO: implement grills, sdl
-        # 8. Grills
-        grill_cost = 0
-        grill_type_sel = config.get('grill_type', 'None')
-        if grill_type_sel != 'None':
-            num_squares = config.get('grill_squares', 0)
-            price_per_sq = grill_prices_per_sq.get(grill_type_sel)
-            if price_per_sq is not None and num_squares > 0:
-                grill_cost = price_per_sq * num_squares
-                price_breakdown[f"Grills: {grill_type_sel} ({num_squares} squares @ {price_per_sq:.2f}/sq)"] = f"{grill_cost:.2f}"
-                current_price += grill_cost
-            elif num_squares <= 0:
-                st.warning(f"Number of squares must be > 0 for grills.")
-            else:
-                st.warning(f"Grill type '{grill_type_sel}' not found.")
-
-        # 9. SDL
-        sdl_cost = 0
-        sdl_type_sel = config.get('sdl_type', 'None')
-        if sdl_type_sel != 'None':
-            num_squares = config.get('sdl_squares', 0)
-            price_per_sq = sdl_prices_per_sq.get(sdl_type_sel)
-            if price_per_sq is not None and num_squares > 0:
-                sdl_cost = price_per_sq * num_squares
-                price_breakdown[f"SDL: {sdl_type_sel} ({num_squares} squares @ {price_per_sq:.2f}/sq)"] = f"{sdl_cost:.2f}"
-                current_price += sdl_cost
-            elif num_squares <= 0:
-                st.warning(f"Number of squares must be > 0 for SDL.")
-            else:
-                st.warning(f"SDL type '{sdl_type_sel}' not found.")
-"""

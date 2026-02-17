@@ -1,0 +1,12 @@
+QUOTE
+=====
+
+Total: $218.17
+
+window_1 (qty 1)
+  Unit: $218.17  Total: $218.17
+  sf: $13.22
+  lf: $15.00
+  unit_1 - awning:
+    Base Price (white, 100.0% of window): $198.33
+  Glass: $19.83

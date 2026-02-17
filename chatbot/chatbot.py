@@ -1,5 +1,6 @@
 """Window quote chatbot v2: router, window expert, config generator (parser), support agent."""
 
+import re
 import yaml
 from enum import Enum
 from pathlib import Path
@@ -16,6 +17,7 @@ from langgraph.checkpoint.memory import MemorySaver
 from llm_io.model_io import ModelIO
 from project_quoter.window_description_parser import WindowDescriptionParser
 from valid_config_generator.valid_config_generator import ValidConfigGenerator
+from chatbot_project_quoter import ChatbotProjectQuoter, format_quote_for_file
 
 from .utils import format_config_summary
 
@@ -28,6 +30,7 @@ class Node(Enum):
     WINDOW_EXPERT = "window_expert"
     COMPANY_SPECIFIC_EXPERT = "company_specific_expert"
     GENERATOR = "generator"
+    QUOTE_GENERATOR = "quote_generator"
     SUPPORT_AGENT = "support_agent"
 
 class CompanyContextResponse(BaseModel):
@@ -51,9 +54,17 @@ model_io = ModelIO(llm=llm)
 structured_model_io = ModelIO(llm=structured_llm)
 
 
+# Basic email pattern: local@domain
+_EMAIL_RE = re.compile(r"[^@\s]+@[^@\s]+\.[^@\s]+")
+
+
 def router(state: State):
-    """Classify the last turn: route to window_expert, company_specific_expert, generator, or support_agent (kill switch)."""
+    """Classify the last turn: route to quote_generator if user gave email, else window_expert, company_specific_expert, generator, or support_agent."""
     print("[node] router")
+    last_user = next((m for m in reversed(state["messages"]) if getattr(m, "type", None) == "human"), None)
+    last_content = (getattr(last_user, "content", None) or "").strip() if last_user else ""
+    if last_content and _EMAIL_RE.search(last_content):
+        return {"next": Node.QUOTE_GENERATOR, "prev": Node.ROUTER}
     system_prompt = (
         "You are a message classifier for a window quoting system. "
         "Route to 'project_info' if the user is giving project details: dimensions (e.g. 45 x 67, 36 by 48), sizes, quantities, window types, or any spec that could be used for a quote. Short messages like '45 x 67' or '2 casement 30x40' are project_info. "
@@ -153,6 +164,32 @@ def config_generator(state: State):
     return {"messages": [AIMessage(content="Config generated successfully.")], "prev": Node.GENERATOR, "config": full_config, "config_valid": True}
 
 
+def quote_generator(state: State):
+    """User provided email; save quote to txt file (email later)."""
+    print("[node] quote_generator")
+    last_user = next((m for m in reversed(state["messages"]) if isinstance(m, HumanMessage)), None)
+    content = (getattr(last_user, "content", None) or "").strip() if last_user else ""
+    email = _EMAIL_RE.search(content).group(0) if content and _EMAIL_RE.search(content) else "you"
+
+    config = state.get("config") or {}
+    if config and isinstance(config, dict) and any(isinstance(v, dict) and v.get("config") for v in config.values()):
+        try:
+            quoter = ChatbotProjectQuoter()
+            total, breakdown = quoter.quote_project(config)
+            quote_text = format_quote_for_file(total, breakdown)
+            quotes_dir = Path(__file__).resolve().parent.parent / "quotes"
+            quotes_dir.mkdir(exist_ok=True)
+            quote_path = quotes_dir / "quote.txt"
+            quote_path.write_text(quote_text, encoding="utf-8")
+            content_out = f"Quote saved to {quote_path.name} (total ${total:,.2f}). We'll send your price range to {email} once that's set up. Is there anything else we can help with?"
+        except Exception as e:
+            content_out = f"We couldn't generate the quote file right now ({e}). We'll send your price range to {email} once that's set up. Is there anything else we can help with?"
+    else:
+        content_out = f"We'll send your price range to {email} once that's set up. Is there anything else we can help with?"
+
+    return {"messages": [AIMessage(content=content_out)], "prev": Node.QUOTE_GENERATOR}
+
+
 def support_agent(state: State):
     """Act based on prev: if window_expert, format reply and offer follow-ups; if generator, placeholder."""
     print("[node] support_agent")
@@ -164,6 +201,9 @@ def support_agent(state: State):
     if prev == Node.ROUTER:
         # Kill switch: user was inappropriate; router sent straight here.
         msg = AIMessage(content="I can't help with that. I'm here to help with windows and quotes—how can I assist you?")
+        return {"messages": [msg], "prev": Node.SUPPORT_AGENT}
+    if prev == Node.QUOTE_GENERATOR:
+        msg = AIMessage(content="Quote sent successfully. Is there anything else I can help with?")
         return {"messages": [msg], "prev": Node.SUPPORT_AGENT}
     if prev in (Node.WINDOW_EXPERT, Node.COMPANY_SPECIFIC_EXPERT):
         system_prompt = (
@@ -222,6 +262,7 @@ builder.add_node("router", router)
 builder.add_node("window_expert", window_expert)
 builder.add_node("company_specific_expert", company_specific_expert)
 builder.add_node("generator", config_generator)
+builder.add_node("quote_generator", quote_generator)
 builder.add_node("support_agent", support_agent)
 builder.add_edge(START, "router")
 builder.add_conditional_edges(
@@ -231,12 +272,14 @@ builder.add_conditional_edges(
         Node.WINDOW_EXPERT: "window_expert",
         Node.COMPANY_SPECIFIC_EXPERT: "company_specific_expert",
         Node.GENERATOR: "generator",
+        Node.QUOTE_GENERATOR: "quote_generator",
         Node.SUPPORT_AGENT: "support_agent",
     },
 )
 builder.add_edge("window_expert", "support_agent")
 builder.add_edge("company_specific_expert", "support_agent")
 builder.add_edge("generator", "support_agent")
+builder.add_edge("quote_generator", "support_agent")
 builder.add_edge("support_agent", END)
 
 agent_app = builder.compile(checkpointer=MemorySaver())
