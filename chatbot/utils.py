@@ -4,7 +4,7 @@ from typing import Optional
 
 
 def format_one_window(window_config: dict, window_label: Optional[str] = None, quantity: Optional[int] = None) -> list[str]:
-    """Format a single window config (width, height, units); returns list of lines. No bullets, tabs for indent."""
+    """Format a single window config (width, height, units); returns list of lines. No bullets, 2-space indent."""
     lines = []
     w = window_config.get("width")
     h = window_config.get("height")
@@ -14,17 +14,18 @@ def format_one_window(window_config: dict, window_label: Optional[str] = None, q
 
     # Window header: "Window 1:"
     if window_label:
-        lines.append(f"{window_label}:")
-    lines.append("")
+        lines.append(f"**{window_label}:**")
 
-    t1 = "  "
-    t2 = "    "
-    t3 = "      "
+    # Non-breaking spaces (U+00A0) so indent isn't stripped in HTML/markdown
+    nbsp = "\u00a0"
+    t1 = nbsp * 2
+    t2 = nbsp * 4
+    t3 = nbsp * 6
 
     if quantity is not None:
-        lines.append(f"{t1}**Quantity:** {quantity}")
+        lines.append(f"{t1}Quantity: {quantity}")
     if w is not None and h is not None and w != -1 and h != -1:
-        lines.append(f'{t1}**{w}"W x {h}"H**')
+        lines.append(f'{t1}{w}"W x {h}"H')
     if not unit_entries:
         return lines
 
@@ -40,14 +41,14 @@ def format_one_window(window_config: dict, window_label: Optional[str] = None, q
             exterior = exterior.replace("_", " ").title()
 
         if multi_unit:
-            lines.append(f"{t1}**Unit {i}:**")
-            lines.append(f"{t2}**Type:** {unit_type}")
+            lines.append(f"{t1}Unit {i}:")
+            lines.append(f"{t2}Type: {unit_type}")
             if interior is not None:
                 lines.append(f"{t3}Interior: {interior}")
             if exterior is not None:
                 lines.append(f"{t3}Exterior: {exterior}")
         else:
-            lines.append(f"{t1}**Type:** {unit_type}")
+            lines.append(f"{t1}Type: {unit_type}")
             if interior is not None:
                 lines.append(f"{t2}Interior: {interior}")
             if exterior is not None:
@@ -58,10 +59,13 @@ def format_one_window(window_config: dict, window_label: Optional[str] = None, q
 
 def format_config_summary(config: dict) -> str:
     """Format the validated config as markdown. Config is { window_1: { config: {...}, quantity: N }, ... }."""
-    lines = ["#### Your request summary\n"]
+    lines = ["#### Your Request Summary:"]
     for window_key, entry in sorted(config.items()):
         window_config = entry.get("config", entry) if isinstance(entry, dict) else entry
         quantity = entry.get("quantity", 1) if isinstance(entry, dict) else 1
         window_label = window_key.replace("_", " ").title()  # e.g. window_1 -> Window 1
         lines.extend(format_one_window(window_config, window_label=window_label, quantity=quantity))
-    return "\n".join(lines) if len(lines) > 1 else "#### Your request summary\nRequest received."
+    # Use <br> for line items so they break in HTML; heading already breaks from ####
+    if len(lines) <= 1:
+        return "#### Your Request Summary:\nRequest received."
+    return "".join(line + "<br>\n" for line in lines)

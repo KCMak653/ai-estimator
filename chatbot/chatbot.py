@@ -297,7 +297,6 @@ builder.add_edge("support_agent", END)
 
 agent_app = builder.compile(checkpointer=MemorySaver())
 
-@traceable(name="Full Agent Session")
 def run_cli():
     print("AI quote estimator bot:")
     thread_id = f"session_{uuid.uuid4().hex[:12]}"

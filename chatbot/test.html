@@ -251,7 +251,7 @@
       sendBtn.textContent = '...';
   
       try {
-        const resp = await fetch('https://window-chatbot-production.up.railway.app/chat', {
+        const resp = await fetch('https://21bd-217-216-113-249.ngrok-free.app/chat', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ message: userMsg, thread_id: threadId })
