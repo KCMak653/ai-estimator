@@ -1,5 +1,6 @@
 from window_quoter.window_quoter import WindowQuoter
 from valid_config_generator.valid_config_generator import ValidConfigGenerator
+from llm_io.model_io import ModelIO
 from .window_description_parser import WindowDescriptionParser
 from typing import List, Dict, Tuple, Union
 from collections import OrderedDict
@@ -55,19 +56,21 @@ class ProjectQuoter:
         logger.debug(f"Project dict: {project_dict}")
 
         # Initialize description parser
-        description_parser = WindowDescriptionParser(self.model_name, debug=self.debug)
+        model_io = ModelIO("openai", self.model_name, WindowDescriptionParser.prompt_instructions)
+        description_parser = WindowDescriptionParser(model_io, debug=self.debug)
         
         # Extract window descriptions and project description
         description_debug_path = f"{debug_file_prefix}_window_descriptions.yaml" if debug_file_prefix else "window_descriptions.yaml"
-        window_descriptions = description_parser.generate_window_descriptions(project_dict['window_descriptions'], debug_file_path=description_debug_path)
-        if not window_descriptions:
+        errs, warnings, window_descriptions = description_parser.generate_window_descriptions(project_dict['window_descriptions'], debug_file_path=description_debug_path)
+        if errs or not window_descriptions:
             project_breakdown["Error"] = "Unable to separate text description into separate window descriptions. Please add spaces or heading to demonstrate separate windows."
             return 0, project_breakdown
 
         project_description = project_dict.get('project_description')
         
         # Initialize the config generator
-        config_generator = ValidConfigGenerator(self.model_name, debug=self.debug)
+        config_gen_model_io = ModelIO("openai", self.model_name, ValidConfigGenerator.generate_prompt())
+        config_generator = ValidConfigGenerator(config_gen_model_io, debug=self.debug)
         
         # Process each window description with quantity
         for i, (window_key, window_data) in enumerate(window_descriptions["windows"].items(), 1):
@@ -80,8 +83,8 @@ class ProjectQuoter:
             logger.info(f"Processing window {i}: {formatted_description} (Quantity: {quantity})")
             
             # Generate and validate config
-            config = config_generator.generate_config(formatted_description, debug_file_path=config_file)
-            if config:
+            errs, warnings, config = config_generator.generate_config(formatted_description, debug_file_path=config_file)
+            if not errs and config:
                 try:
                     # Create window quoter with generated config
                     window_cost, window_breakdown = WindowQuoter(config, self.pricing_config_path).quote_window()

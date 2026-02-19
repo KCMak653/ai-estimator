@@ -1,0 +1,9 @@
+Window 1
+  Type: Awning
+  Dimensions: 45"W x 45"H
+  Interior: White
+  Exterior: White
+  Quantity: 1
+  Total Price: $435 - $510
+
+Total: $435 - $510

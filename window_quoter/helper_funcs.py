@@ -1,12 +1,17 @@
+import math
+
 from util.yaml_util import getOrReturnNoneYaml
-# --- Helper Functions --- 
+# --- Helper Functions ---
+
 
 def calculate_sf(width, height):
+    """Square footage from width/height (inches); rounded up to nearest even number."""
     if width <= 0:
         raise ValueError("Width must be greater than 0")
     if height <= 0:
         raise ValueError("Height must be greater than 0")
-    return (width * height) / 144.0
+    raw_sf = (width * height) / 144.0
+    return math.ceil(raw_sf / 2) * 2
 
 def calculate_lf(width, height):
     if width <= 0:

@@ -1,0 +1,10 @@
+# Invalid config: negative height, invalid interior
+width: 50
+height: -24
+
+units:
+  unit_1:
+    unit_type: "casement"
+    window_area_frac: 1
+    interior: "black"
+    exterior: "white"

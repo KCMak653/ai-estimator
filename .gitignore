@@ -4,3 +4,7 @@ CLAUDE.md
 temp*
 **/.DS_Store
 quote-env/*
+.aider*
+package*
+--extra-params*
+node_modules/**
