@@ -1,0 +1,281 @@
+<div id="direct-windows-estimator">
+  <div class="estimator-box">
+    <div class="ai-badge">AI POWERED</div>
+    <h2 class="est-title">Online Window Estimate</h2>
+    <p class="est-text">Describe your windows and get a realistic price range in under a minute.</p>
+
+    <div class="chat-shell">
+      <div class="chat-header">
+        <div class="chat-title">Window Estimator AI</div>
+        <div class="chat-subtitle">Try: “2 casements 36x60, 1 picture 48x48”</div>
+      </div>
+
+      <div id="dw-chat-messages" class="chat-messages" aria-live="polite"></div>
+
+      <div class="chat-input-row">
+        <input
+          id="dw-chat-input"
+          class="chat-input"
+          type="text"
+          placeholder="Type window sizes + types (e.g., 36x60 casement)..."
+          autocomplete="off"
+        />
+        <button id="dw-chat-send" class="chat-send" type="button">Send</button>
+      </div>
+
+      <div class="chat-hint">
+        Tip: Include window type (casement / slider / picture) + size (W x H).
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+  /* Layout: center the estimator on the page */
+  #direct-windows-estimator {
+    width: 100%;
+    padding: 40px 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  /* The box stays centered and branded */
+  #direct-windows-estimator .estimator-box {
+    max-width: 720px;
+    width: 92%;
+    padding: 56px 20px;
+    background: #ffffff;
+    border: 3px solid #1AB1AD; /* Brand Teal */
+    border-radius: 16px;
+    text-align: center;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  }
+
+  #direct-windows-estimator .ai-badge {
+    display: inline-block;
+    padding: 4px 12px;
+    background: #1AB1AD;
+    color: white;
+    border-radius: 999px;
+    font-size: 10px;
+    font-weight: bold;
+    margin-bottom: 12px;
+    letter-spacing: 0.4px;
+  }
+
+  #direct-windows-estimator .est-title {
+    color: #343D46 !important; /* Brand Charcoal */
+    margin-bottom: 8px !important;
+    font-size: 28px !important;
+    line-height: 1.2;
+  }
+
+  #direct-windows-estimator .est-text {
+    color: #718096 !important;
+    font-size: 14px !important;
+    margin-bottom: 22px !important;
+  }
+
+  /* Chat shell: looks like an embedded widget inside the centered box */
+  #direct-windows-estimator .chat-shell {
+    margin: 0 auto;
+    max-width: 560px;
+    text-align: left;
+    border: 1px solid #e2e8f0;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #fff;
+  }
+
+  #direct-windows-estimator .chat-header {
+    padding: 14px 16px;
+    background: #000;
+    color: #fff;
+  }
+
+  #direct-windows-estimator .chat-title {
+    font-weight: 800;
+    font-size: 14px;
+    letter-spacing: 0.2px;
+  }
+
+  #direct-windows-estimator .chat-subtitle {
+    margin-top: 4px;
+    font-size: 12px;
+    opacity: 0.85;
+  }
+
+  #direct-windows-estimator .chat-messages {
+    height: 320px;
+    padding: 14px 14px 10px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    background: #fafafa;
+  }
+
+  /* Bubbles */
+  #direct-windows-estimator .msg {
+    max-width: 88%;
+    padding: 10px 12px;
+    border-radius: 12px;
+    font-size: 13px;
+    line-height: 1.35;
+    border: 1px solid rgba(0,0,0,0.06);
+    word-wrap: break-word;
+    white-space: pre-wrap;
+  }
+
+  #direct-windows-estimator .msg.user {
+    align-self: flex-end;
+    background: #e3f2fd;
+  }
+
+  #direct-windows-estimator .msg.ai {
+    align-self: flex-start;
+    background: #ffffff;
+  }
+
+  /* Formatting Overrides for Library Output */
+  #direct-windows-estimator .msg.ai strong { font-weight: bold !important; }
+  #direct-windows-estimator .msg.ai ul { margin-left: 18px !important; list-style: disc !important; margin-top: 5px !important; }
+  #direct-windows-estimator .msg.ai p { margin: 0 0 5px 0 !important; }
+
+  #direct-windows-estimator .msg.system {
+    align-self: center;
+    background: #fff7d6;
+    border-color: rgba(0,0,0,0.08);
+    font-size: 12px;
+    max-width: 95%;
+  }
+
+  /* Input row */
+  #direct-windows-estimator .chat-input-row {
+    display: flex;
+    gap: 10px;
+    padding: 12px;
+    border-top: 1px solid #e2e8f0;
+    background: #fff;
+  }
+
+  #direct-windows-estimator .chat-input {
+    flex: 1;
+    height: 44px;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 0 12px;
+    outline: none;
+    font-size: 13px;
+  }
+
+  #direct-windows-estimator .chat-input:focus {
+    border-color: #1AB1AD;
+    box-shadow: 0 0 0 3px rgba(26,177,173,0.15);
+  }
+
+  #direct-windows-estimator .chat-send {
+    height: 44px;
+    min-width: 92px;
+    background: #FDD20E; /* Brand Yellow */
+    color: #000;
+    border: none;
+    border-radius: 10px;
+    font-weight: 800;
+    cursor: pointer;
+  }
+
+  #direct-windows-estimator .chat-send:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  #direct-windows-estimator .chat-hint {
+    padding: 10px 14px 14px;
+    font-size: 12px;
+    color: #718096;
+    background: #fff;
+  }
+
+  /* Mobile tweaks */
+  @media (max-width: 480px) {
+    #direct-windows-estimator .chat-messages { height: 280px; }
+    #direct-windows-estimator .estimator-box { padding: 44px 16px; }
+    #direct-windows-estimator .chat-send { min-width: 76px; }
+  }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+<script>
+(function() {
+  const messagesEl = document.getElementById('dw-chat-messages');
+  const inputEl = document.getElementById('dw-chat-input');
+  const sendBtn = document.getElementById('dw-chat-send');
+
+  if (!messagesEl || !inputEl || !sendBtn) return;
+
+  const STORAGE_KEY = 'dw_estimator_thread_id';
+  let threadId = localStorage.getItem(STORAGE_KEY);
+  if (!threadId) {
+    threadId = 'shop_' + Math.random().toString(36).slice(2, 11);
+    localStorage.setItem(STORAGE_KEY, threadId);
+  }
+
+  function addMsg(text, who) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + who;
+    
+    // Check if Marked library is ready
+    if (who === 'ai' && typeof marked !== 'undefined') {
+      div.innerHTML = marked.parse(text);
+      div.style.whiteSpace = 'normal'; // Allow HTML layout
+    } else {
+      div.textContent = text;
+    }
+    
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  addMsg("Hi — tell me what windows you’re replacing (type + size).", "ai");
+
+  async function sendMessage() {
+    const userMsg = inputEl.value.trim();
+    if (!userMsg) return;
+
+    inputEl.value = '';
+    addMsg(userMsg, 'user');
+
+    sendBtn.disabled = true;
+    sendBtn.textContent = '...';
+
+    try {
+      const resp = await fetch('https://window-chatbot-production.up.railway.app/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: userMsg, thread_id: threadId })
+      });
+
+      if (!resp.ok) {
+        addMsg("Sorry — I couldn’t reach the estimator. Please try again.", "system");
+        return;
+      }
+
+      const data = await resp.json();
+      addMsg(data.response || "I didn’t get a response. Try again.", 'ai');
+    } catch (e) {
+      addMsg("Error connecting to estimator. Please try again.", "system");
+    } finally {
+      sendBtn.disabled = false;
+      sendBtn.textContent = 'Send';
+      inputEl.focus();
+    }
+  }
+
+  sendBtn.addEventListener('click', sendMessage);
+  inputEl.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+  });
+})();
+</script>
