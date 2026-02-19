@@ -1,11 +1,18 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from pydantic import BaseModel
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
+
 from chatbot.chatbot import agent_app
 import uuid
 from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
 
+limiter = Limiter(key_func=get_remote_address)
 app = FastAPI(title="Windows Chatbot Backend")
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
@@ -21,14 +28,15 @@ class ChatRequest(BaseModel):
     thread_id: Optional[str] = None
 
 @app.post("/chat")
-async def chat_endpoint(request: ChatRequest):
+@limiter.limit("5/minute")
+async def chat_endpoint(request: Request, chat_request: ChatRequest):
     # Use existing thread_id or create a new one
-    thread_id = request.thread_id or str(uuid.uuid4())
+    thread_id = chat_request.thread_id or str(uuid.uuid4())
     
     config = {"configurable": {"thread_id": thread_id}}
     
     # Run the graph
-    input_message = {"messages": [("user", request.message)]}
+    input_message = {"messages": [("user", chat_request.message)]}
     result = agent_app.invoke(input_message, config=config)
     
     # Get the last message from the assistant
