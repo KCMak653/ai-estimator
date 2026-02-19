@@ -146,9 +146,9 @@ class ChatbotProjectQuoter:
         return total_with_surcharge, project_breakdown
 
 
-def format_quote_for_file(total: float, breakdown: Dict[str, Any]) -> str:
-    """Format project quote as plain text for saving to a file."""
-    lines = ["QUOTE", "=====", ""]
+def format_quote(total: float, breakdown: Dict[str, Any]) -> str:
+    """Format project quote as plain text (file or email)."""
+    lines = []
     total_min = 0
     total_max = 0
     for key in sorted(breakdown.keys()):

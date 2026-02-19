@@ -1,21 +1,9 @@
-QUOTE
-=====
-
 Window 1
-  Type: Casement
-  Dimensions: 23"W x 45"H
+  Type: Awning
+  Dimensions: 45"W x 45"H
   Interior: White
   Exterior: White
   Quantity: 1
-  Total Price: $250 - $295
+  Total Price: $435 - $510
 
-Window 2
-  Type: Single Slider
-  Dimensions: 34"W x 98"H
-  Interior: White
-  Exterior: White
-  Quantity: 2
-  Price per window: $445 - $520
-  Total Price: $890 - $1,040
-
-Total: $1,140 - $1,335
+Total: $435 - $510

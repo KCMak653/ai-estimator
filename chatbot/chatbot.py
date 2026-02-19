@@ -1,6 +1,7 @@
 """Window quote chatbot v2: router, window expert, config generator (parser), support agent."""
 
 import re
+import uuid
 import yaml
 from enum import Enum
 from pathlib import Path
@@ -13,11 +14,12 @@ from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, System
 from langgraph.graph import START, END, StateGraph
 from langgraph.graph.message import add_messages
 from langgraph.checkpoint.memory import MemorySaver
-
+from langsmith import traceable
 from llm_io.model_io import ModelIO
 from project_quoter.window_description_parser import WindowDescriptionParser
 from valid_config_generator.valid_config_generator import ValidConfigGenerator
-from chatbot_project_quoter import ChatbotProjectQuoter, format_quote_for_file
+from chatbot_project_quoter import ChatbotProjectQuoter, format_quote
+from quote_emailer.quote_emailer import QuoteEmailer
 
 from .utils import format_config_summary
 
@@ -46,6 +48,7 @@ class State(TypedDict, total=False):
     config_valid: bool
     config_warnings: dict
     config: dict
+    email_address: str
 
 llm = ChatOpenAI(model="gpt-4o-mini")
 structured_llm = ChatOpenAI(model="gpt-4o-mini").with_structured_output(CompanyContextResponse)
@@ -172,20 +175,22 @@ def quote_generator(state: State):
     email = _EMAIL_RE.search(content).group(0) if content and _EMAIL_RE.search(content) else "you"
 
     config = state.get("config") or {}
-    if config and isinstance(config, dict) and any(isinstance(v, dict) and v.get("config") for v in config.values()):
+    if state.get("config_valid") and config and isinstance(config, dict) and any(isinstance(v, dict) and v.get("config") for v in config.values()):
         try:
             quoter = ChatbotProjectQuoter()
             total, breakdown = quoter.quote_project(config)
-            quote_text = format_quote_for_file(total, breakdown)
+            quote_text = format_quote(total, breakdown)
             quotes_dir = Path(__file__).resolve().parent.parent / "quotes"
             quotes_dir.mkdir(exist_ok=True)
             quote_path = quotes_dir / "quote.txt"
             quote_path.write_text(quote_text, encoding="utf-8")
-            content_out = f"Quote saved to {quote_path.name} (total ${total:,.2f}). We'll send your price range to {email} once that's set up. Is there anything else we can help with?"
+            emailer = QuoteEmailer(email)
+            emailer.send_quote(quote_text, debug=True)
+            content_out = "Quote sent successfully. Is there anything else we can help with?"
         except Exception as e:
-            content_out = f"We couldn't generate the quote file right now ({e}). We'll send your price range to {email} once that's set up. Is there anything else we can help with?"
+            content_out = f"We couldn't generate the quote right now ({e}). Is there anything else we can help with?"
     else:
-        content_out = f"We'll send your price range to {email} once that's set up. Is there anything else we can help with?"
+        content_out = "Is there anything else we can help with?"
 
     return {"messages": [AIMessage(content=content_out)], "prev": Node.QUOTE_GENERATOR}
 
@@ -203,8 +208,8 @@ def support_agent(state: State):
         msg = AIMessage(content="I can't help with that. I'm here to help with windows and quotes—how can I assist you?")
         return {"messages": [msg], "prev": Node.SUPPORT_AGENT}
     if prev == Node.QUOTE_GENERATOR:
-        msg = AIMessage(content="Quote sent successfully. Is there anything else I can help with?")
-        return {"messages": [msg], "prev": Node.SUPPORT_AGENT}
+        # Last message is already from quote_generator; don't add a second one.
+        return {"prev": Node.SUPPORT_AGENT}
     if prev in (Node.WINDOW_EXPERT, Node.COMPANY_SPECIFIC_EXPERT):
         system_prompt = (
             "You are the customer-facing window-quote assistant. Your role is to properly format responses and prompt for project information. "
@@ -225,11 +230,19 @@ def support_agent(state: State):
         if state.get("config_valid"):
             config = state.get("config") or {}
             summary = format_config_summary(config)
-            follow_up = (
-                "\n\n---\n\n"
-                "Does this look correct, or would you like any modifications? "
+            email = state.get("email_address") or ""
+            if email:
+                follow_up = (
+                    "\n\n---\n\n"
+                    "Does this look correct, or would you like any modifications? "
+                    f"If it looks good, would you like us to send your price range?"
+                )
+            else:
+                follow_up = (
+                    "\n\n---\n\n"
+                    "Does this look correct, or would you like any modifications? "
                 "If it looks good, please share your email address and we’ll send your price range to you."
-            )
+                )
             return {"messages": [AIMessage(content=summary + follow_up)], "prev": Node.SUPPORT_AGENT}
         warnings = state.get("config_warnings") or {}
         if isinstance(warnings, list):
@@ -284,10 +297,14 @@ builder.add_edge("support_agent", END)
 
 agent_app = builder.compile(checkpointer=MemorySaver())
 
-
+@traceable(name="Full Agent Session")
 def run_cli():
     print("AI quote estimator bot:")
-    config = {"configurable": {"thread_id": "unique_user_id_123"}}
+    thread_id = f"session_{uuid.uuid4().hex[:12]}"
+    config = {
+        "configurable": {"thread_id": thread_id},
+        "metadata": {"thread_id": thread_id},
+    }
     current_state = {"messages": []}
     while True:
         user_input = input("You: ")
