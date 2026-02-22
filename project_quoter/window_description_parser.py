@@ -14,6 +14,8 @@ class WindowDescriptionParser:
 
     The input is a text blob and you return a yaml structured that looks like:
 
+    installation_required: # Top-level boolean. Set to true or false ONLY when the user explicitly states whether installation is required. If the user did not specify, do not set to false — omit this key.
+    installation_confidence: # Top-level boolean. Set to true ONLY if we know for certain from the user's text whether they do or do not want installation. If it is unclear or not specified, set to false.
     windows:
         window_<N>: # Fill in N with the window number
             quantity: # Number of windows in this config @Required
@@ -24,6 +26,8 @@ class WindowDescriptionParser:
     When the user uses a slash "/" between window types (e.g. "fixed/fixed/casement" or "fixed / fixed / awning"), that means a single window with multiple units, not multiple separate windows. Output one window entry and a description that explicitly states it is a multi-unit configuration, e.g. "Multi-unit - fixed/fixed/casement" or "Single window with 3 units - fixed/fixed/awning".
     Do not include colons inside description (or any string) values; use a dash or comma instead (e.g. "3 units - fixed/fixed/awning" not "3 units: fixed"). Colons break YAML.
     Do not set width or height unless the user explicitly specified dimensions (e.g. "36 x 48") for that window. If the user only specified window types (e.g. fixed/fixed/awning) or other details without dimensions, omit width and height for that window.
+    installation_required: Only set to true or false when the user explicitly says whether installation is required. If they did not specify, omit the key or set to REPLACE; do not default to false.
+    installation_confidence: Set to true only and only if we know for certain (from the user's words) whether they want installation or not. This can be from earlier quotes in conversation. If unclear or not specified, set to false.
     Do not wrap the output in markdown code blocks or backticks. Return only the raw YAML.
     """
     
@@ -91,11 +95,29 @@ class WindowDescriptionParser:
         3. Description is a string
         4. Quantity exists and is positive
         5. Windows is top level key
+        6. installation_required must be present and be true or false
+        7. installation_confidence must be present and be true (config valid only when we are confident)
 
         Returns:
             tuple: (errors_exist: bool, errors: list)
         """
         errors = []
+
+        # installation_required is required and must be a boolean
+        if 'installation_required' not in config:
+            errors.append("Missing required top-level key 'installation_required'")
+        elif not isinstance(config['installation_required'], bool):
+            errors.append(
+                f"Top-level 'installation_required' must be true or false; got {type(config['installation_required']).__name__}"
+            )
+
+        # installation_confidence is required and must be true
+        if 'installation_confidence' not in config:
+            errors.append("Missing required top-level key 'installation_confidence'")
+        elif config['installation_confidence'] is not True:
+            errors.append(
+                "Not confident if they want installation or now. Should clarify with them."
+            )
 
         # Check if 'windows' is top level key
         if 'windows' not in config:

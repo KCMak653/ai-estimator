@@ -10,7 +10,8 @@ class WindowQuoter:
         # Window-level properties
         self.width = self.window_config.get('width')
         self.height = self.window_config.get('height')
-        self.sf = calculate_sf(self.width, self.height)
+        self.sf_raw = calculate_sf_raw(self.width, self.height)
+        self.sf = calculate_sf(self.width, self.height)  # rounded up to next even number
         self.lf = calculate_lf(self.width, self.height)
         
         # Units configuration
@@ -21,7 +22,8 @@ class WindowQuoter:
         if self.sf <= 0: # Basic validation
             price_breakdown['Error'] = "Width and Height must be greater than 0."
             return 0, price_breakdown
-        price_breakdown['sf'] = self.sf
+        price_breakdown['sf_raw'] = self.sf_raw
+        price_breakdown['sf'] = self.sf  # rounded up to next even number
         price_breakdown['lf'] = self.lf
         
         if self.units is None:
@@ -129,9 +131,9 @@ class WindowQuoter:
         return current_price, price_breakdown
 
     def quote_labour(self, price_breakdown = {}):
-        """Add labour costs"""
+        """Add labour costs (uses raw sf)."""
         labour_pricing = self.pricing_config.get("labour")
-        labour_cost = max(labour_pricing.get("min_sf"), self.sf) * labour_pricing.get("per_sf_rate")
+        labour_cost = max(labour_pricing.get("min_sf"), self.sf_raw) * labour_pricing.get("per_sf_rate")
         price_breakdown["labour"] = labour_cost
         return price_breakdown
     
@@ -141,7 +143,7 @@ class WindowQuoter:
 
         current_price, price_breakdown = self.quote_frame(price_breakdown, current_price)
         current_price, price_breakdown = self.quote_glass(price_breakdown, current_price)
-        # price_breakdown = self.quote_labour(price_breakdown)  # labour does not get added to window price
+        price_breakdown = self.quote_labour(price_breakdown)  # labour does not get added to window price
 
         return current_price, price_breakdown
 

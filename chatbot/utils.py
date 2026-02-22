@@ -59,13 +59,21 @@ def format_one_window(window_config: dict, window_label: Optional[str] = None, q
 
 def format_config_summary(config: dict) -> str:
     """Format the validated config as markdown. Config is { window_1: { config: {...}, quantity: N }, ... }."""
+    nbsp = "\u00a0"
+    t1 = nbsp * 2
     lines = ["#### Your Request Summary:"]
     for window_key, entry in sorted(config.items()):
-        window_config = entry.get("config", entry) if isinstance(entry, dict) else entry
-        quantity = entry.get("quantity", 1) if isinstance(entry, dict) else 1
-        window_label = window_key.replace("_", " ").title()  # e.g. window_1 -> Window 1
+        if not isinstance(window_key, str) or not window_key.startswith("window_"):
+            continue
+        if not isinstance(entry, dict):
+            continue
+        window_config = entry.get("config", entry)
+        quantity = entry.get("quantity", 1)
+        window_label = window_key.replace("_", " ").title()
         lines.extend(format_one_window(window_config, window_label=window_label, quantity=quantity))
-    # Use <br> for line items so they break in HTML; heading already breaks from ####
+    if "installation_required" in config:
+        inst = config["installation_required"]
+        lines.append(f"{t1}Installation: {'Required' if inst else 'Not required'}")
     if len(lines) <= 1:
         return "#### Your Request Summary:\nRequest received."
     return "".join(line + "<br>\n" for line in lines)
