@@ -44,7 +44,7 @@ class QuoteEmailer:
             return
         try:
             resend.Emails.send({
-                "from": "Quotes <onboarding@resend.dev>",
+                "from": "Direct Windows <hello@quote.directwindows.ca>",
                 "to": self.email_address,
                 "subject": subject,
                 "html": body,
@@ -66,8 +66,8 @@ if __name__ == "__main__":
 
 Total: $250 - $295
 """
-    emailer = QuoteEmailer("test@example.com")
-    emailer.send_quote(sample_quote, debug=True)
+    emailer = QuoteEmailer("dmagal@gmail.com")
+    emailer.send_quote(sample_quote, debug=False)
 
     # resend.api_key = os.getenv("RESEND_ADMIN_API_KEY")
     # domain = resend.Domains.create({

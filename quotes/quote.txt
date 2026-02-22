@@ -1,9 +1,0 @@
-Window 1
-  Type: Awning
-  Dimensions: 34"W x 34"H
-  Interior: White
-  Exterior: White
-  Quantity: 1
-  Total Price: $315 - $365
-
-Total: $315 - $365

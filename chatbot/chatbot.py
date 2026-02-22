@@ -67,7 +67,8 @@ def router(state: State):
     last_user = next((m for m in reversed(state["messages"]) if getattr(m, "type", None) == "human"), None)
     last_content = (getattr(last_user, "content", None) or "").strip() if last_user else ""
     if last_content and _EMAIL_RE.search(last_content):
-        return {"next": Node.QUOTE_GENERATOR, "prev": Node.ROUTER}
+        email = _EMAIL_RE.search(last_content).group(0).strip()
+        return {"next": Node.QUOTE_GENERATOR, "prev": Node.ROUTER, "email_address": email}
     system_prompt = (
         "You are a message classifier for a window quoting system. "
         "Route to 'project_info' if the user is giving project details: dimensions (e.g. 45 x 67, 36 by 48), sizes, quantities, window types, whether they need installation, or any spec that could be used for a quote. Short messages like '45 x 67' or '2 casement 30x40' or 'yes include installation' are project_info. "
@@ -168,25 +169,23 @@ def config_generator(state: State):
 
 
 def quote_generator(state: State):
-    """User provided email; save quote to txt file (email later)."""
+    """User provided email; save quote to txt file (email later). Router only sends here when email was detected, so email_address is in state."""
     print("[node] quote_generator")
-    last_user = next((m for m in reversed(state["messages"]) if isinstance(m, HumanMessage)), None)
-    content = (getattr(last_user, "content", None) or "").strip() if last_user else ""
-    email = _EMAIL_RE.search(content).group(0) if content and _EMAIL_RE.search(content) else "you"
+    email = state.get("email_address", "")
 
     config = state.get("config") or {}
     if state.get("config_valid") and config and isinstance(config, dict) and any(isinstance(v, dict) and v.get("config") for v in config.values()):
         try:
             quote_id = f"Q-{uuid.uuid4().hex[:10].upper()}"
             quoter = ChatbotProjectQuoter()
-            total, breakdown = quoter.quote_project(config)
-            quote_text = format_quote(total, breakdown)
+            total, display_dict = quoter.quote_project(config)
+            quote_text = format_quote(display_dict)
             quotes_dir = Path(__file__).resolve().parent.parent / "quotes"
             quotes_dir.mkdir(exist_ok=True)
             quote_path = quotes_dir / f"{quote_id}.txt"
             quote_path.write_text(quote_text, encoding="utf-8")
             emailer = QuoteEmailer(email)
-            emailer.send_quote(quote_text, quote_id=quote_id, debug=True)
+            emailer.send_quote(quote_text, quote_id=quote_id, debug=False)
             content_out = f"Quote sent successfully (ref: {quote_id}). Is there anything else we can help with?"
         except Exception as e:
             content_out = f"We couldn't generate the quote right now ({e}). Is there anything else we can help with?"

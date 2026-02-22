@@ -22,6 +22,94 @@ def _round_up_to_5(x: float) -> int:
     return math.ceil(x / 5) * 5
 
 
+def _compute_window_price_fields(cost: float, quantity: int) -> Dict[str, Any]:
+    """
+    Compute price fields for one window line. Raw = surcharge only (single value).
+    Adjusted = surcharge + MIN/MAX_ADJUSTMENT, rounded up to 5 (min/max). Rounding at unit level only.
+    """
+    cost_with_surcharge = cost * (1 + EGRESS_EXPERTS_SURCHARGE)
+    per_unit = cost_with_surcharge / quantity if quantity else 0
+    price = per_unit * quantity
+    unit_min_adj = _round_up_to_5(per_unit * MIN_ADJUSTMENT)
+    unit_max_adj = _round_up_to_5(per_unit * MAX_ADJUSTMENT)
+    price_min_adj = unit_min_adj * quantity
+    price_max_adj = unit_max_adj * quantity
+    return {
+        "unit_price": per_unit,
+        "price": price,
+        "unit_price_min_adjusted": unit_min_adj,
+        "unit_price_max_adjusted": unit_max_adj,
+        "price_min_adjusted": price_min_adj,
+        "price_max_adjusted": price_max_adj,
+    }
+
+
+def _build_quote_display(
+    project_breakdown: Dict[str, Any],
+    installation_required: bool,
+    installation_total: float,
+) -> Dict[str, Any]:
+    """
+    Build the display dict for format_quote: all math done here, no math in format_quote.
+    """
+    window_keys = [
+        k for k in sorted(project_breakdown.keys())
+        if isinstance(k, str) and k.startswith("window_") and isinstance(project_breakdown.get(k), dict)
+    ]
+    multi_unit = len(window_keys) > 1
+    any_quant_gt_1 = any((project_breakdown.get(k) or {}).get("quantity", 1) > 1 for k in window_keys)
+
+    breakdown_display: Dict[str, Any] = {}
+    total_min_adj = 0
+    total_max_adj = 0
+
+    for key in window_keys:
+        val = project_breakdown[key]
+        if val.get("breakdown", {}).get("Error"):
+            continue
+        cost = val.get("cost", 0)
+        qty = val.get("quantity", 1)
+        price_fields = _compute_window_price_fields(cost, qty)
+        total_min_adj += price_fields["price_min_adjusted"]
+        total_max_adj += price_fields["price_max_adjusted"]
+        breakdown_display[key] = {
+            "type": val.get("type") or "—",
+            "width": val.get("width"),
+            "height": val.get("height"),
+            "interior": val.get("interior") or "—",
+            "exterior": val.get("exterior") or "—",
+            "quantity": qty,
+            **price_fields,
+        }
+
+    installation_req = installation_required is True
+    installation_cost = installation_total if installation_req else 0.0
+    # Windows subtotal = sum of (rounded unit price * qty) per window — no rounding of this sum
+    windows_total_min = total_min_adj
+    windows_total_max = total_max_adj
+    # Only round installation; totals are just addition of rounded pieces
+    inst_min_adj = inst_max_adj = 0
+    if installation_req and installation_cost > 0:
+        inst_min_adj = _round_up_to_5(installation_cost * MIN_ADJUSTMENT)
+        inst_max_adj = _round_up_to_5(installation_cost * MAX_ADJUSTMENT)
+    total_min_adj = windows_total_min + inst_min_adj
+    total_max_adj = windows_total_max + inst_max_adj
+    return {
+        "multi_unit": multi_unit,
+        "any_quant_gt_1": any_quant_gt_1,
+        "installation_req": installation_req,
+        "installation": installation_cost,
+        "installation_min_adjusted": inst_min_adj,
+        "installation_max_adjusted": inst_max_adj,
+        "windows_total_min_adjusted": windows_total_min,
+        "windows_total_max_adjusted": windows_total_max,
+        "total_min_adjusted": total_min_adj,
+        "total_max_adjusted": total_max_adj,
+        "breakdown": breakdown_display,
+        "failed": project_breakdown.get("failed"),
+    }
+
+
 def _type_from_config(config: Dict[str, Any]) -> str:
     """One-line type from config units (e.g. 'Fixed' or 'Fixed / Operable')."""
     units = config.get("units") or {}
@@ -153,63 +241,61 @@ class ChatbotProjectQuoter:
             project_breakdown["Installation"] = installation_total
             total_with_surcharge += installation_total
 
-        return total_with_surcharge, project_breakdown
+        display_dict = _build_quote_display(
+            project_breakdown,
+            installation_required=installation_required is True,
+            installation_total=installation_total,
+        )
+        print(display_dict)
+        return total_with_surcharge, display_dict
 
 
-def format_quote(total: float, breakdown: Dict[str, Any]) -> str:
-    """Format project quote as plain text (file or email)."""
+def format_quote(display_dict: Dict[str, Any]) -> str:
+    """Format the pre-computed quote display dict as plain text (file or email). No math, just render."""
     lines = []
-    total_min = 0
-    total_max = 0
-    window_keys = [k for k in sorted(breakdown.keys()) if k not in ("total", "failed", "Surcharge", "Installation") and isinstance(breakdown.get(k), dict)]
-    any_qty_gt_1 = any((breakdown.get(k) or {}).get("quantity", 1) > 1 for k in window_keys)
-    show_windows_total = len(window_keys) > 1 or any_qty_gt_1
-    for key in window_keys:
-        val = breakdown[key]
-        cost = val.get("cost", 0)
-        cost_with_surcharge = cost * (1 + EGRESS_EXPERTS_SURCHARGE)
-        qty = val.get("quantity", 1)
-        per_unit = cost_with_surcharge / qty
-        unit_min = _round_up_to_5(per_unit * MIN_ADJUSTMENT)
-        unit_max = _round_up_to_5(per_unit * MAX_ADJUSTMENT)
-        min_p = unit_min * qty
-        max_p = unit_max * qty
-        total_min += min_p
-        total_max += max_p
-        w, h = val.get("width"), val.get("height")
-        if w is not None and h is not None:
-            dims = f'{w}"W x {h}"H'
-        else:
-            dims = "—"
-        type_str = val.get("type") or "—"
-        interior_str = val.get("interior", "—")
-        exterior_str = val.get("exterior", "—")
+    breakdown = display_dict.get("breakdown", {})
+    multi_unit = display_dict.get("multi_unit", False)
+    any_quant_gt_1 = display_dict.get("any_quant_gt_1", False)
+    show_windows_total = multi_unit or any_quant_gt_1
+    installation_req = display_dict.get("installation_req", False)
+    total_min = display_dict.get("total_min_adjusted", 0)
+    total_max = display_dict.get("total_max_adjusted", 0)
+
+    for key in sorted(breakdown.keys()):
+        w = breakdown[key]
+        w_type = w.get("type", "—")
+        width, height = w.get("width"), w.get("height")
+        dims = f'{width}"W x {height}"H' if (width is not None and height is not None) else "—"
+        interior = w.get("interior", "—")
+        exterior = w.get("exterior", "—")
+        qty = w.get("quantity", 1)
+        unit_min = w.get("unit_price_min_adjusted", 0)
+        unit_max = w.get("unit_price_max_adjusted", 0)
         label = key.replace("_", " ").title()
         lines.append(label)
-        lines.append(f"  Type: {type_str}")
+        lines.append(f"  Type: {w_type}")
         lines.append(f"  Dimensions: {dims}")
-        lines.append(f"  Interior: {interior_str}")
-        lines.append(f"  Exterior: {exterior_str}")
+        lines.append(f"  Interior: {interior}")
+        lines.append(f"  Exterior: {exterior}")
         lines.append(f"  Quantity: {qty}")
         if qty > 1:
             lines.append(f"  Price per window: ${unit_min:,} - ${unit_max:,}")
         else:
             lines.append(f"  Price: ${unit_min:,} - ${unit_max:,}")
         lines.append("")
+
     if show_windows_total:
-        lines.append(f"Total Price (windows only): ${total_min:,} - ${total_max:,}")
+        lines.append(f"Total Price (windows only): ${display_dict.get('windows_total_min_adjusted', 0):,} - ${display_dict.get('windows_total_max_adjusted', 0):,}")
         lines.append("")
-    installation = breakdown.get("Installation")
-    if installation is not None and installation > 0:
-        inst_min = _round_up_to_5(installation * MIN_ADJUSTMENT)
-        inst_max = _round_up_to_5(installation * MAX_ADJUSTMENT)
-        total_min += inst_min
-        total_max += inst_max
-        lines.append(f"Installation: ${inst_min:,} - ${inst_max:,}")
+
+    if installation_req and (display_dict.get("installation_min_adjusted") or 0) > 0:
+        lines.append(f"Installation: ${display_dict.get('installation_min_adjusted', 0):,} - ${display_dict.get('installation_max_adjusted', 0):,}")
         lines.append("")
-    total_label = "Total (including installation):" if (installation and installation > 0) else "Total:"
+
+    total_label = "Total (including installation):" if installation_req else "Total:"
     lines.append(f"{total_label} ${total_min:,} - ${total_max:,} plus tax")
     lines.append("")
-    if breakdown.get("failed"):
-        lines.append("Failed windows: " + str(breakdown["failed"]))
+
+    if display_dict.get("failed"):
+        lines.append("Failed windows: " + str(display_dict["failed"]))
     return "\n".join(lines)
