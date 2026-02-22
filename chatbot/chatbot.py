@@ -49,6 +49,7 @@ class State(TypedDict, total=False):
     config_warnings: dict
     config: dict
     email_address: str
+    debug: bool
 
 llm = ChatOpenAI(model="gpt-4o-mini")
 structured_llm = ChatOpenAI(model="gpt-4o-mini").with_structured_output(CompanyContextResponse)
