@@ -303,7 +303,7 @@ def run_cli():
         "configurable": {"thread_id": thread_id},
         "metadata": {"thread_id": thread_id},
     }
-    current_state = {"messages": [], "debug": True}
+    current_state = {"messages": [], "debug": False}
     try:
         while True:
             try:
