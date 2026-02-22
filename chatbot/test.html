@@ -251,11 +251,12 @@
       sendBtn.textContent = '...';
   
       try {
-        const resp = await fetch('https://window-chatbot-production.up.railway.app/chat', {
+        const resp = await fetch('https://407e-217-216-113-240.ngrok-free.app/chat', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json',
-            "X-Custom-Key": "default-key"
-           },
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer default-key'
+          },
           body: JSON.stringify({ message: userMsg, thread_id: threadId })
         });
   
@@ -264,12 +265,16 @@
           addMsg("Slow down! You've sent too many messages. Please try again in a minute.", "system");
           return;
         }
-
+        if (resp.status === 403) {
+          const errText = await resp.text();
+          addMsg(errText || "Access denied (403).", "system");
+          return;
+        }
         if (!resp.ok) {
           addMsg("Sorry — I couldn’t reach the estimator. Please try again.", "system");
           return;
         }
-  
+
         const data = await resp.json();
         addMsg(data.response || "I didn’t get a response. Try again.", 'ai');
       } catch (e) {

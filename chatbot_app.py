@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Request
-from fastapi.responses import JSONResponse
+from fastapi.responses import PlainTextResponse
 from pydantic import BaseModel
 from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
@@ -26,8 +26,8 @@ app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
 app.add_middleware(
     CORSMiddleware,
-    # Add your Shopify store URL and your Railway URL here
-    allow_origins=["https://direct-windows-quote.myshopify.com", "https://window-chatbot-production.up.railway.app"], 
+    # allow_origins=["https://direct-windows-quote.myshopify.com", "https://window-chatbot-production.up.railway.app"], 
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -43,10 +43,10 @@ class ChatRequest(BaseModel):
 @limiter.limit("5/minute; 100/day")
 async def chat_endpoint(request: Request, chat_request: ChatRequest):
 
-    client_key = request.headers.get("X-Custom-Key")
-    
+    auth = request.headers.get("Authorization")
+    client_key = auth.split(maxsplit=1)[1] if auth and auth.startswith("Bearer ") else None
     if client_key != API_AUTH_KEY:
-        return JSONResponse(status_code=403, content={"error": "Invalid API key"})  
+        return PlainTextResponse("Invalid API key", status_code=403)  
 
     thread_id = chat_request.thread_id or str(uuid.uuid4())
     
