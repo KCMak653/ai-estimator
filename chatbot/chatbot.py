@@ -177,16 +177,17 @@ def quote_generator(state: State):
     config = state.get("config") or {}
     if state.get("config_valid") and config and isinstance(config, dict) and any(isinstance(v, dict) and v.get("config") for v in config.values()):
         try:
+            quote_id = f"Q-{uuid.uuid4().hex[:10].upper()}"
             quoter = ChatbotProjectQuoter()
             total, breakdown = quoter.quote_project(config)
             quote_text = format_quote(total, breakdown)
             quotes_dir = Path(__file__).resolve().parent.parent / "quotes"
             quotes_dir.mkdir(exist_ok=True)
-            quote_path = quotes_dir / "quote.txt"
+            quote_path = quotes_dir / f"{quote_id}.txt"
             quote_path.write_text(quote_text, encoding="utf-8")
             emailer = QuoteEmailer(email)
-            emailer.send_quote(quote_text, debug=True)
-            content_out = "Quote sent successfully. Is there anything else we can help with?"
+            emailer.send_quote(quote_text, quote_id=quote_id, debug=True)
+            content_out = f"Quote sent successfully (ref: {quote_id}). Is there anything else we can help with?"
         except Exception as e:
             content_out = f"We couldn't generate the quote right now ({e}). Is there anything else we can help with?"
     else:
@@ -298,6 +299,7 @@ builder.add_edge("support_agent", END)
 agent_app = builder.compile(checkpointer=MemorySaver())
 
 def run_cli():
+
     print("AI quote estimator bot:")
     thread_id = f"session_{uuid.uuid4().hex[:12]}"
     config = {

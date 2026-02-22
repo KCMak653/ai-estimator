@@ -1,5 +1,6 @@
 import html
 import os
+from typing import Optional
 
 import resend
 
@@ -29,13 +30,14 @@ class QuoteEmailer:
         self.email_address = email_address
         resend.api_key = os.getenv("RESEND_API_KEY")
 
-    def send_quote(self, quote: str, debug: bool = False):
-        """Send quote email. quote: formatted string from format_quote(total, breakdown). If debug=True, write HTML to a file instead of sending."""
+    def send_quote(self, quote: str, quote_id: Optional[str] = None, debug: bool = False):
+        """Send quote email. quote: formatted string from format_quote(total, breakdown). quote_id: optional unique ref (e.g. Q-ABC123). If debug=True, write HTML to a file instead of sending."""
         body = quote_to_email_html(quote)
+        subject = f"Your Quote {quote_id}" if quote_id else "Your Generated Quote"
         if debug:
             out_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "quotes")
             os.makedirs(out_dir, exist_ok=True)
-            path = os.path.join(out_dir, "quote_email.html")
+            path = os.path.join(out_dir, f"quote_email_{quote_id or 'debug'}.html")
             with open(path, "w", encoding="utf-8") as f:
                 f.write(body)
             print(f"Debug: wrote HTML to {path}")
@@ -44,7 +46,7 @@ class QuoteEmailer:
             resend.Emails.send({
                 "from": "Quotes <onboarding@resend.dev>",
                 "to": self.email_address,
-                "subject": "Your Generated Quote",
+                "subject": subject,
                 "html": body,
             })
             print("Success!")

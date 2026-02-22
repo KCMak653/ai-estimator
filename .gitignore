@@ -8,3 +8,4 @@ quote-env/*
 package*
 --extra-params*
 node_modules/**
+quotes/**
