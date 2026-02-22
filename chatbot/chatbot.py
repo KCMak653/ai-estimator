@@ -305,14 +305,22 @@ def run_cli():
         "metadata": {"thread_id": thread_id},
     }
     current_state = {"messages": []}
-    while True:
-        user_input = input("You: ")
-        if user_input.lower() in ("exit", "quit"):
-            break
-        current_state["messages"].append(HumanMessage(content=user_input))
-        current_state = agent_app.invoke(current_state, config=config)
-        last = current_state["messages"][-1]
-        print(f"Agent: {last.content}")
+    try:
+        while True:
+            try:
+                user_input = input("You: ")
+            except (EOFError, KeyboardInterrupt):
+                print("\nGoodbye.")
+                break
+            if user_input.strip().lower() in ("exit", "quit"):
+                print("Goodbye.")
+                break
+            current_state["messages"].append(HumanMessage(content=user_input))
+            current_state = agent_app.invoke(current_state, config=config)
+            last = current_state["messages"][-1]
+            print(f"Agent: {last.content}")
+    except KeyboardInterrupt:
+        print("\nGoodbye.")
 
 
 if __name__ == "__main__":
