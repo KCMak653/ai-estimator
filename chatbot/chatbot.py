@@ -21,7 +21,7 @@ from valid_config_generator.valid_config_generator import ValidConfigGenerator
 from chatbot_project_quoter import ChatbotProjectQuoter, format_quote
 from quote_emailer.quote_emailer import QuoteEmailer
 
-from .utils import format_config_summary
+from .utils import format_config_summary, print_quote_to_txt
 
 _COMPANY_CONTEXT_PATH = Path(__file__).parent / "company_context" / "direct_window_replacement_context.txt"
 _COMPANY_CONTEXT = _COMPANY_CONTEXT_PATH.read_text() if _COMPANY_CONTEXT_PATH.exists() else ""
@@ -181,12 +181,10 @@ def quote_generator(state: State):
             quoter = ChatbotProjectQuoter()
             total, display_dict = quoter.quote_project(config)
             quote_text = format_quote(display_dict)
-            quotes_dir = Path(__file__).resolve().parent.parent / "quotes"
-            quotes_dir.mkdir(exist_ok=True)
-            quote_path = quotes_dir / f"{quote_id}.txt"
-            quote_path.write_text(quote_text, encoding="utf-8")
+            if state.get("debug", False):
+                print_quote_to_txt(quote_text, quote_id, display_dict)
             emailer = QuoteEmailer(email)
-            emailer.send_quote(quote_text, quote_id=quote_id, debug=False)
+            emailer.send_quote(quote_text, quote_id=quote_id, debug=state.get("debug", False))
             content_out = f"Quote sent successfully (ref: {quote_id}). Is there anything else we can help with?"
         except Exception as e:
             content_out = f"We couldn't generate the quote right now ({e}). Is there anything else we can help with?"
@@ -305,7 +303,7 @@ def run_cli():
         "configurable": {"thread_id": thread_id},
         "metadata": {"thread_id": thread_id},
     }
-    current_state = {"messages": []}
+    current_state = {"messages": [], "debug": True}
     try:
         while True:
             try:

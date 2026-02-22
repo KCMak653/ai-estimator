@@ -16,6 +16,9 @@ EGRESS_EXPERTS_SURCHARGE = 0.37
 MIN_ADJUSTMENT = 1.2
 MAX_ADJUSTMENT = 1.4
 
+MIN_PROFIT_FLOOR = 600
+MAX_PROFIT_FLOOR = 800
+
 
 def _round_up_to_5(x: float) -> int:
     """Round up to nearest $5."""
@@ -39,6 +42,8 @@ def _compute_window_price_fields(cost: float, quantity: int) -> Dict[str, Any]:
         "price": price,
         "unit_price_min_adjusted": unit_min_adj,
         "unit_price_max_adjusted": unit_max_adj,
+        "price_min_amt_adjusted": price_min_adj - price,
+        "price_max_amt_adjusted": price_max_adj - price,
         "price_min_adjusted": price_min_adj,
         "price_max_adjusted": price_max_adj,
     }
@@ -62,6 +67,8 @@ def _build_quote_display(
     breakdown_display: Dict[str, Any] = {}
     total_min_adj = 0
     total_max_adj = 0
+    total_amt_min_adj = 0
+    total_amt_max_adj = 0
 
     for key in window_keys:
         val = project_breakdown[key]
@@ -72,6 +79,8 @@ def _build_quote_display(
         price_fields = _compute_window_price_fields(cost, qty)
         total_min_adj += price_fields["price_min_adjusted"]
         total_max_adj += price_fields["price_max_adjusted"]
+        total_amt_min_adj += price_fields["price_min_amt_adjusted"]
+        total_amt_max_adj += price_fields["price_max_amt_adjusted"]
         breakdown_display[key] = {
             "type": val.get("type") or "—",
             "width": val.get("width"),
@@ -92,8 +101,21 @@ def _build_quote_display(
     if installation_req and installation_cost > 0:
         inst_min_adj = _round_up_to_5(installation_cost * MIN_ADJUSTMENT)
         inst_max_adj = _round_up_to_5(installation_cost * MAX_ADJUSTMENT)
-    total_min_adj = windows_total_min + inst_min_adj
-    total_max_adj = windows_total_max + inst_max_adj
+    
+    total_amt_min_adj += (inst_min_adj - installation_cost)
+    total_amt_max_adj += (inst_max_adj - installation_cost)
+    min_profit_addon = _round_up_to_5(max(MIN_PROFIT_FLOOR - total_amt_min_adj, 0))
+    max_profit_addon = _round_up_to_5(max(MAX_PROFIT_FLOOR - total_amt_max_adj, 0))
+    
+    if not installation_req:
+        min_profit_addon = 0
+        max_profit_addon = 0
+
+    total_min_adj = windows_total_min + inst_min_adj + min_profit_addon
+    total_max_adj = windows_total_max + inst_max_adj + max_profit_addon
+    inst_min_adj += min_profit_addon
+    inst_max_adj += max_profit_addon
+
     return {
         "multi_unit": multi_unit,
         "any_quant_gt_1": any_quant_gt_1,
@@ -103,6 +125,8 @@ def _build_quote_display(
         "installation_max_adjusted": inst_max_adj,
         "windows_total_min_adjusted": windows_total_min,
         "windows_total_max_adjusted": windows_total_max,
+        "min_profit_addon": min_profit_addon,
+        "max_profit_addon": max_profit_addon,
         "total_min_adjusted": total_min_adj,
         "total_max_adjusted": total_max_adj,
         "breakdown": breakdown_display,

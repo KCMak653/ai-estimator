@@ -1,6 +1,19 @@
 """Chatbot utilities: config summary formatting."""
 
-from typing import Optional
+import json
+from pathlib import Path
+from typing import Any, Dict, Optional
+
+
+def print_quote_to_txt(quote_text: str, quote_id: str, display_dict: Optional[Dict[str, Any]] = None) -> None:
+    """Write quote text to quotes/{quote_id}.txt (and optionally display_dict to quotes/{quote_id}_display.json) under the project root (for debug)."""
+    quotes_dir = Path(__file__).resolve().parent.parent / "quotes"
+    quotes_dir.mkdir(exist_ok=True)
+    (quotes_dir / f"{quote_id}.txt").write_text(quote_text, encoding="utf-8")
+    if display_dict is not None:
+        (quotes_dir / f"{quote_id}_display.json").write_text(
+            json.dumps(display_dict, indent=2, default=str), encoding="utf-8"
+        )
 
 
 def format_one_window(window_config: dict, window_label: Optional[str] = None, quantity: Optional[int] = None) -> list[str]:
