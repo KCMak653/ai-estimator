@@ -7,6 +7,7 @@ from chatbot.chatbot import agent_app
 import uuid
 from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
+import os
 
 
 def get_real_ip(request: Request):
