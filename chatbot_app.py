@@ -46,18 +46,8 @@ async def chat_endpoint(request: Request, chat_request: ChatRequest):
     auth = request.headers.get("Authorization")
     client_key = (auth.split(maxsplit=1)[1].strip() if auth and auth.startswith("Bearer ") else None) or None
     expected = (API_AUTH_KEY or "").strip() or None
-    if expected is None:
-        return PlainTextResponse(
-            "Invalid API key. Debug: CHAT_CUSTOM_HEADER_KEY is not set on server.",
-            status_code=403,
-        )
     if client_key != expected:
-        # Temporary debug: remove after fixing prod
-        debug = (
-            f"Invalid API key. Debug: auth_header={bool(auth)}, bearer={auth and auth.startswith('Bearer ')}, "
-            f"client_key_len={len(client_key) if client_key else 0}, expected_len={len(expected)}"
-        )
-        return PlainTextResponse(debug, status_code=403)  
+        return PlainTextResponse("Invalid API key", status_code=403)  
 
     thread_id = chat_request.thread_id or str(uuid.uuid4())
     
