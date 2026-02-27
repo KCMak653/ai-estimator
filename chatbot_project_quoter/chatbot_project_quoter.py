@@ -5,6 +5,7 @@ Passes one window config at a time to WindowQuoter, collects price and breakdown
 combines per-window breakdowns and multiplies by quantity.
 """
 
+import html
 import math
 import os
 from typing import Any, Dict, Tuple
@@ -180,18 +181,17 @@ class ChatbotProjectQuoter:
             )
         self.pricing_config_path = pricing_config_path
 
-    def quote_project(self, chatbot_config: Dict[str, Any]) -> Tuple[float, Dict[str, Any]]:
+    def quote_project(self, chatbot_config: Dict[str, Any], format: str = "string") -> Tuple[float, Dict[str, Any], str]:
         """
         Quote all windows in the chatbot config.
 
         Args:
             chatbot_config: { window_1: { config: { width, height, units }, quantity: N }, ... }
+            format: "string" for plain text, "html" for HTML fragment (e.g. email body).
 
         Returns:
-            (total_with_surcharge, project_breakdown)
-            total_with_surcharge is pre-tax windows subtotal + surcharge (37%).
-            project_breakdown has keys per window (e.g. window_1) with quantity, unit_cost, cost, breakdown;
-            "total" (windows subtotal), "Surcharge", and optionally "failed".
+            (total_with_surcharge, display_dict, formatted_output)
+            formatted_output is from format_quote_as_string or format_quote_as_html depending on format.
         """
         total_cost = 0.0
         installation_total = 0.0
@@ -271,10 +271,14 @@ class ChatbotProjectQuoter:
             installation_total=installation_total,
         )
         print(display_dict)
-        return total_with_surcharge, display_dict
+        if format == "html":
+            formatted = format_quote_as_html(display_dict)
+        else:
+            formatted = format_quote_as_string(display_dict)
+        return total_with_surcharge, display_dict, formatted
 
 
-def format_quote(display_dict: Dict[str, Any]) -> str:
+def format_quote_as_string(display_dict: Dict[str, Any]) -> str:
     """Format the pre-computed quote display dict as plain text (file or email). No math, just render."""
     lines = []
     breakdown = display_dict.get("breakdown", {})
@@ -323,3 +327,59 @@ def format_quote(display_dict: Dict[str, Any]) -> str:
     if display_dict.get("failed"):
         lines.append("Failed windows: " + str(display_dict["failed"]))
     return "\n".join(lines)
+
+
+def format_quote_as_html(display_dict: Dict[str, Any]) -> str:
+    """Format the pre-computed quote display dict as an HTML fragment for embedding in email. Safe to insert into {{body}}."""
+    style = "margin: 0 0 16px 0; font-size: 14px; line-height: 1.5; color: #333;"
+    line_style = "margin: 4px 0; font-size: 14px; line-height: 1.5; color: #333;"
+    breakdown = display_dict.get("breakdown", {})
+    multi_unit = display_dict.get("multi_unit", False)
+    any_quant_gt_1 = display_dict.get("any_quant_gt_1", False)
+    show_windows_total = multi_unit or any_quant_gt_1
+    installation_req = display_dict.get("installation_req", False)
+    total_min = display_dict.get("total_min_adjusted", 0)
+    total_max = display_dict.get("total_max_adjusted", 0)
+    parts = []
+
+    for key in sorted(breakdown.keys()):
+        w = breakdown[key]
+        w_type = html.escape(str(w.get("type", "—")))
+        width, height = w.get("width"), w.get("height")
+        dims = f'{width}"W x {height}"H' if (width is not None and height is not None) else "—"
+        dims = html.escape(dims)
+        interior = html.escape(str(w.get("interior", "—")))
+        exterior = html.escape(str(w.get("exterior", "—")))
+        qty = w.get("quantity", 1)
+        unit_min = w.get("unit_price_min_adjusted", 0)
+        unit_max = w.get("unit_price_max_adjusted", 0)
+        label = html.escape(key.replace("_", " ").title())
+        price_line = f"Price per window: <strong>${unit_min:,} - ${unit_max:,}</strong>" if qty > 1 else f"Price: <strong>${unit_min:,} - ${unit_max:,}</strong>"
+        block = (
+            f'<p style="{style}"><strong>{label}</strong></p>'
+            f'<p style="{line_style}">Type: {w_type}</p>'
+            f'<p style="{line_style}">Dimensions: {dims}</p>'
+            f'<p style="{line_style}">Interior: {interior}</p>'
+            f'<p style="{line_style}">Exterior: {exterior}</p>'
+            f'<p style="{line_style}">Quantity: {qty}</p>'
+            f'<p style="{line_style}">{price_line}</p>'
+        )
+        parts.append(block)
+
+    if show_windows_total:
+        w_min = display_dict.get("windows_total_min_adjusted", 0)
+        w_max = display_dict.get("windows_total_max_adjusted", 0)
+        parts.append(f'<p style="{style}">Total Price (windows only): <strong>${w_min:,} - ${w_max:,}</strong></p>')
+
+    if installation_req and (display_dict.get("installation_min_adjusted") or 0) > 0:
+        inst_min = display_dict.get("installation_min_adjusted", 0)
+        inst_max = display_dict.get("installation_max_adjusted", 0)
+        parts.append(f'<p style="{style}">Installation: <strong>${inst_min:,} - ${inst_max:,}</strong></p>')
+
+    total_label = "Total (including installation):" if installation_req else "Total:"
+    parts.append(f'<p style="{style}"><strong>{total_label} ${total_min:,} - ${total_max:,} plus tax</strong></p>')
+
+    if display_dict.get("failed"):
+        parts.append("<p style=\"" + style + "\">Failed windows: " + html.escape(str(display_dict["failed"])) + "</p>")
+
+    return "".join(parts)

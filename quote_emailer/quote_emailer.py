@@ -1,38 +1,36 @@
-import html
 import os
 from typing import Optional
+from urllib.parse import quote
 
 import resend
 
 _EMAIL_TEMPLATE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "email_template.html")
+_EMAIL_TEMPLATE_INSTALLATION_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "email_template_installation.html")
+UNSUBSCRIBE_PAGE_URL = "https://direct-windows-quote.myshopify.com/pages/unsubscribe"
 
 
-def string_to_html(s: str) -> str:
-    """Take a string and return HTML that displays it (preserves indentation and line breaks)."""
-    escaped = html.escape(s)
-    return f'<pre style="margin: 0; white-space: pre-wrap; font-family: inherit; font-size: 14px; line-height: 1.5;">{escaped}</pre>'
-
-
-def _load_template() -> str:
-    with open(_EMAIL_TEMPLATE_PATH, "r", encoding="utf-8") as f:
+def _load_template(installation_required: bool = False) -> str:
+    path = _EMAIL_TEMPLATE_INSTALLATION_PATH if installation_required else _EMAIL_TEMPLATE_PATH
+    with open(path, "r", encoding="utf-8") as f:
         return f.read()
 
 
-def quote_to_email_html(quote: str) -> str:
-    """Wrap quote string in the email template (header + body + footer)."""
-    body = string_to_html(quote)
-    template = _load_template()
-    return template.replace("{{body}}", body)
+def quote_to_email_html(quote_html: str, user_email: str, installation_required: bool = False) -> str:
+    """Wrap quote HTML body in the email template (header + body + footer). Body is inserted as-is."""
+    unsubscribe_url = f"{UNSUBSCRIBE_PAGE_URL}?contact[email]={quote(user_email, safe='')}"
+    template = _load_template(installation_required)
+    return template.replace("{{body}}", quote_html).replace("{{unsubscribe_url}}", unsubscribe_url)
 
 
 class QuoteEmailer:
     def __init__(self, email_address: str):
         self.email_address = email_address
-        resend.api_key = os.getenv("RESEND_API_KEY")
+        # resend.api_key = os.getenv("RESEND_API_KEY")
+        resend.api_key = os.getenv("RESEND_ADMIN_API_KEY")
 
-    def send_quote(self, quote: str, quote_id: Optional[str] = None, debug: bool = False):
-        """Send quote email. quote: formatted string from format_quote(total, breakdown). quote_id: optional unique ref (e.g. Q-ABC123). If debug=True, write HTML to a file instead of sending."""
-        body = quote_to_email_html(quote)
+    def send_quote(self, quote: str, quote_id: Optional[str] = None, debug: bool = False, installation_required: bool = False):
+        """Send quote email. quote: HTML body (inserted into template as-is). quote_id: optional unique ref. If debug=True, write HTML to a file. installation_required: use installation CTA template."""
+        body = quote_to_email_html(quote, self.email_address, installation_required=installation_required)
         subject = f"Your Quote {quote_id}" if quote_id else "Your Generated Quote"
         if debug:
             out_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "quotes")
@@ -48,6 +46,10 @@ class QuoteEmailer:
                 "to": self.email_address,
                 "subject": subject,
                 "html": body,
+                "headers": {
+                    "List-Unsubscribe": f"<https://direct-windows-quote.myshopify.com/pages/unsubscribe?contact[email]={self.email_address}>",
+                    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"
+                }
             })
             print("Success!")
         except Exception as e:
@@ -56,16 +58,12 @@ class QuoteEmailer:
 
 if __name__ == "__main__":
     # Debug: write sample quote HTML to file
-    sample_quote = """Window 1
-  Type: Casement
-  Dimensions: 23"W x 45"H
-  Interior: White
-  Exterior: White
-  Quantity: 1
-  Total Price: $250 - $295
-
-Total: $250 - $295
-"""
+    sample_quote = """<p style="margin: 0 0 16px 0; font-size: 14px;"><strong>Window 1</strong></p>
+<p style="margin: 4px 0;">Type: Casement</p>
+<p style="margin: 4px 0;">Dimensions: 23"W x 45"H</p>
+<p style="margin: 4px 0;">Quantity: 1</p>
+<p style="margin: 4px 0;">Price: $250 - $295</p>
+<p style="margin: 16px 0 0;"><strong>Total: $250 - $295 plus tax</strong></p>"""
     emailer = QuoteEmailer("dmagal@gmail.com")
     emailer.send_quote(sample_quote, debug=False)
 
