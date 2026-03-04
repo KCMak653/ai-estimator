@@ -27,7 +27,7 @@ class WindowDescriptionParser:
     Do not include colons inside description (or any string) values; use a dash or comma instead (e.g. "3 units - fixed/fixed/awning" not "3 units: fixed"). Colons break YAML.
     Do not set width or height unless the user explicitly specified dimensions (e.g. "36 x 48") for that window. If the user only specified window types (e.g. fixed/fixed/awning) or other details without dimensions, omit width and height for that window.
     installation_required: Only set to true or false when the user explicitly says whether installation is required. If they did not specify, omit the key or set to REPLACE; do not default to false.
-    installation_confidence: Set to true only and only if we know for certain (from the user's words) whether they want installation or not. This can be from earlier quotes in conversation. If unclear or not specified, set to false.
+    installation_confidence: Set to true only and only if you are fairly certain (70%) (from the user's words) whether they want installation or not. This can be from earlier messages in conversation. If unclear or not specified, set to false.
     Do not wrap the output in markdown code blocks or backticks. Return only the raw YAML.
     """
     
@@ -102,6 +102,10 @@ class WindowDescriptionParser:
             tuple: (errors_exist: bool, errors: list)
         """
         errors = []
+
+        if config is None or not isinstance(config, dict):
+            errors.append(f"Config must be a dictionary, got {type(config).__name__}")
+            return True, errors
 
         # installation_required is required and must be a boolean
         if 'installation_required' not in config:
