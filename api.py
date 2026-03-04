@@ -55,7 +55,7 @@ def quote_project():
     project_name = project_dict['project_name']
  
     # Default model for now - could be configurable later
-    model_name = "gpt-4.1"
+    model_name = "gpt-5.3-instant"
     
     # Create project quoter and get quote
     project_quoter = ProjectQuoter(model_name)

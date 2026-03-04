@@ -51,8 +51,8 @@ class State(TypedDict, total=False):
     email_address: str
     debug: bool
 
-llm = ChatOpenAI(model="gpt-4o-mini")
-structured_llm = ChatOpenAI(model="gpt-4o-mini").with_structured_output(CompanyContextResponse)
+llm = ChatOpenAI(model="gpt-5.3-chat-latest")
+structured_llm = ChatOpenAI(model="gpt-5.3-chat-latest").with_structured_output(CompanyContextResponse)
 
 model_io = ModelIO(llm=llm)
 structured_model_io = ModelIO(llm=structured_llm)
