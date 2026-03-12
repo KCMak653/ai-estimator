@@ -25,9 +25,9 @@ def quote_to_email_html(quote_html: str, user_email: str, installation_required:
 class QuoteEmailer:
     def __init__(self, email_address: str):
         self.email_address = email_address
-        resend.api_key = os.getenv("RESEND_ADMIN_API_KEY")
+        resend.api_key = os.getenv("RESEND_API_KEY")
         if not resend.api_key:
-            print("[QuoteEmailer] WARNING: RESEND_ADMIN_API_KEY not set; emails will not send.")
+            print("[QuoteEmailer] WARNING: RESEND_API_KEY not set; emails will not send.")
 
     def send_quote(self, quote: str, quote_id: Optional[str] = None, debug: bool = False, installation_required: bool = False):
         """Send quote email. quote: HTML body (inserted into template as-is). quote_id: optional unique ref. If debug=True, write HTML to a file. installation_required: use installation CTA template."""
@@ -42,7 +42,7 @@ class QuoteEmailer:
             print(f"[QuoteEmailer] Debug: wrote HTML to {path} (no email sent)")
             return
         if not resend.api_key:
-            raise ValueError("RESEND_ADMIN_API_KEY is not set; cannot send email.")
+            raise ValueError("Email service is not configured. Please try again later.")
         try:
             resend.Emails.send({
                 "from": "Direct Windows <hello@quote.directwindows.ca>",
@@ -71,7 +71,7 @@ if __name__ == "__main__":
     emailer = QuoteEmailer("dmagal@gmail.com")
     emailer.send_quote(sample_quote, debug=False)
 
-    # resend.api_key = os.getenv("RESEND_ADMIN_API_KEY")
+    # resend.api_key = os.getenv("RESEND_API_KEY")
     # domain = resend.Domains.create({
     #     "name": "quote.directwindows.ca",
     # })
