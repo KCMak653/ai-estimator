@@ -25,8 +25,9 @@ def quote_to_email_html(quote_html: str, user_email: str, installation_required:
 class QuoteEmailer:
     def __init__(self, email_address: str):
         self.email_address = email_address
-        # resend.api_key = os.getenv("RESEND_API_KEY")
         resend.api_key = os.getenv("RESEND_ADMIN_API_KEY")
+        if not resend.api_key:
+            print("[QuoteEmailer] WARNING: RESEND_ADMIN_API_KEY not set; emails will not send.")
 
     def send_quote(self, quote: str, quote_id: Optional[str] = None, debug: bool = False, installation_required: bool = False):
         """Send quote email. quote: HTML body (inserted into template as-is). quote_id: optional unique ref. If debug=True, write HTML to a file. installation_required: use installation CTA template."""
@@ -38,8 +39,10 @@ class QuoteEmailer:
             path = os.path.join(out_dir, f"quote_email_{quote_id or 'debug'}.html")
             with open(path, "w", encoding="utf-8") as f:
                 f.write(body)
-            print(f"Debug: wrote HTML to {path}")
+            print(f"[QuoteEmailer] Debug: wrote HTML to {path} (no email sent)")
             return
+        if not resend.api_key:
+            raise ValueError("RESEND_ADMIN_API_KEY is not set; cannot send email.")
         try:
             resend.Emails.send({
                 "from": "Direct Windows <hello@quote.directwindows.ca>",
@@ -51,9 +54,10 @@ class QuoteEmailer:
                     "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"
                 }
             })
-            print("Success!")
+            print(f"[QuoteEmailer] Email sent to {self.email_address} (ref: {quote_id})")
         except Exception as e:
-            print(f"Failed: {e}")
+            print(f"[QuoteEmailer] Failed to send email: {e}")
+            raise
 
 
 if __name__ == "__main__":

@@ -186,6 +186,7 @@ def quote_generator(state: State):
     if state.get("config_valid") and config and isinstance(config, dict) and any(isinstance(v, dict) and v.get("config") for v in config.values()):
         try:
             quote_id = f"Q-{uuid.uuid4().hex[:10].upper()}"
+            print(f"[quote_generator] Sending quote to {email}, debug={state.get('debug', False)}")
             quoter = ChatbotProjectQuoter()
             total, display_dict, quote_body = quoter.quote_project(config, format="html")
             if state.get("debug", False):
@@ -195,6 +196,7 @@ def quote_generator(state: State):
             emailer.send_quote(quote_body, quote_id=quote_id, debug=state.get("debug", False), installation_required=installation_required)
             content_out = f"Quote sent successfully (ref: {quote_id}). Is there anything else we can help with?"
         except Exception as e:
+            print(f"[quote_generator] Error: {e}")
             content_out = f"We couldn't generate the quote right now ({e}). Is there anything else we can help with?"
     else:
         content_out = "Is there anything else we can help with?"
