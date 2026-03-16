@@ -1,0 +1,185 @@
+casement:
+  white:
+    - max_sf: 6
+      price: 143.4
+      per_sf_rate: 0
+    - max_sf: 9
+      price: 162.0
+      per_sf_rate: 0
+    - max_sf: 12
+      price: 180.75
+      per_sf_rate: 15.09
+  colour:
+    - max_sf: 6
+      price: 190.2
+      per_sf_rate: 0
+    - max_sf: 9
+      price: 208.82
+      per_sf_rate: 0
+    - max_sf: 12
+      price: 277.55
+      per_sf_rate: 18.87
+  exterior:
+    colour_base_perc: 0.25
+    custom_colour_add_on: 200
+    stain_add_on: 90.00
+  interior:
+    stain_add_on: 120.00
+  price_list_adjustment_factor: 1.24
+
+awning:
+  white:
+    - max_sf: 6
+      price: 154.31
+      per_sf_rate: 0
+    - max_sf: 9
+      price: 173.04
+      per_sf_rate: 0
+    - max_sf: 12
+      price: 191.78
+      per_sf_rate: 16.43
+  colour:
+    - max_sf: 6
+      price: 206.32
+      per_sf_rate: 0
+    - max_sf: 9
+      price: 225.05
+      per_sf_rate: 0
+    - max_sf: 12
+      price: 243.78
+      per_sf_rate: 20.54
+  exterior:
+    colour_base_perc: 0.25
+    custom_colour_add_on: 200
+    stain_add_on: 90.00
+  interior:
+    stain_add_on: 140.00
+  price_list_adjustment_factor: 1.18
+
+fixed_casement:
+  white:
+    - max_sf: 7
+      price: 90.38
+      per_sf_rate: 13.31
+  colour:
+    - max_sf: 7
+      price: 121.58
+      per_sf_rate: 15.86
+  exterior:
+    colour_base_perc: 0.25
+    custom_colour_add_on: 200
+    stain_add_on: 50.00
+  interior:
+    stain_add_on: 70.00
+  price_list_adjustment_factor: 1.24
+
+picture_window:
+  white:
+    - max_sf: 7
+      price: 80.48
+      per_sf_rate: 11.58
+  colour:
+    - max_sf: 7
+      price: 111.68
+      per_sf_rate: 14.48
+  exterior:
+    colour_base_perc: 0.25
+    custom_colour_add_on: 200
+    stain_add_on: 50.00
+  interior:
+    stain_add_on: 70.00
+  price_list_adjustment_factor: 1.24
+
+single_slider:
+  white:
+    - max_sf: 6
+      price: 127.00
+      per_sf_rate: 0
+    - max_sf: 9
+      price: 142.44
+      per_sf_rate: 0
+    - max_sf: 12
+      price: 157.89
+      per_sf_rate: 12.24
+  exterior:
+    colour_base_perc: 0.25
+    custom_colour_add_on: 200
+    stain_add_on: 60.00
+  price_list_adjustment_factor: 1.25
+
+single_hung:
+  white:
+    - max_sf: 6
+      price: 134.15
+      per_sf_rate: 0
+    - max_sf: 9
+      price: 150.74
+      per_sf_rate: 0
+    - max_sf: 12
+      price: 167.37
+      per_sf_rate: 13.84
+  exterior:
+    colour_base_perc: 0.25
+    custom_colour_add_on: 200
+    stain_add_on: 60.00
+  price_list_adjustment_factor: 1.25
+
+double_end_slider:
+  white:
+    - max_sf: 14
+      price: 205.37
+      per_sf_rate: 14.66
+  exterior:
+    colour_base_perc: 0.25
+    custom_colour_add_on: 200
+    stain_add_on: 90.00
+  price_list_adjustment_factor: 1.363
+
+double_hung:
+  white:
+    - max_sf: 6
+      price: 132.48
+      per_sf_rate: 0
+    - max_sf: 9
+      price: 148.38
+      per_sf_rate: 0
+    - max_sf: 12
+      price: 164.28
+      per_sf_rate: 13.69
+  exterior:
+    colour_base_perc: 0.25
+    custom_colour_add_on: 200
+    stain_add_on: 90.00
+  price_list_adjustment_factor: 1.363
+
+double_slider:
+  white:
+    - max_sf: 6
+      price: 129.31
+      per_sf_rate: 0
+    - max_sf: 9
+      price: 142.02
+      per_sf_rate: 0
+    - max_sf: 12
+      price: 154.74
+      per_sf_rate: 12.93
+  exterior:
+    colour_base_perc: 0.25
+    custom_colour_add_on: 200
+    stain_add_on: 90.00
+  price_list_adjustment_factor: 1.363
+
+glass:
+  - max_sf: 6
+    price: 9
+    per_sf_rate: 0
+  - max_sf: 17
+    price: 0
+    per_sf_rate: 1.5
+  - max_sf: 999
+    price: 0
+    per_sf_rate: 3
+
+labour:
+  per_sf_rate: 14.5
+  min_sf: 9

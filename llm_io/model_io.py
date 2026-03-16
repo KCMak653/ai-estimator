@@ -1,8 +1,12 @@
-import logging
-from typing import List, Optional, Union
+from __future__ import annotations
 
-from langchain_core.messages import BaseMessage
+import logging
+from typing import TYPE_CHECKING, List, Optional, Union
+
 from openai import OpenAI
+
+if TYPE_CHECKING:
+    from langchain_core.messages import BaseMessage
 
 logger = logging.getLogger(__name__)
 
