@@ -13,7 +13,7 @@ from typing import Any, Dict, Tuple
 from window_quoter.window_quoter import WindowQuoter
 
 
-EGRESS_EXPERTS_SURCHARGE = 0.37
+DISCOUNT = 0.195  # 19.5%
 MIN_ADJUSTMENT = 1.2
 MAX_ADJUSTMENT = 1.4
 
@@ -28,11 +28,11 @@ def _round_up_to_5(x: float) -> int:
 
 def _compute_window_price_fields(cost: float, quantity: int) -> Dict[str, Any]:
     """
-    Compute price fields for one window line. Raw = surcharge only (single value).
-    Adjusted = surcharge + MIN/MAX_ADJUSTMENT, rounded up to 5 (min/max). Rounding at unit level only.
+    Compute price fields for one window line. Raw = cost after discount (single value).
+    Adjusted = discount + MIN/MAX_ADJUSTMENT, rounded up to 5 (min/max). Rounding at unit level only.
     """
-    cost_with_surcharge = cost * (1 + EGRESS_EXPERTS_SURCHARGE)
-    per_unit = cost_with_surcharge / quantity if quantity else 0
+    cost_after_discount = cost * (1 - DISCOUNT)
+    per_unit = cost_after_discount / quantity if quantity else 0
     price = per_unit * quantity
     unit_min_adj = _round_up_to_5(per_unit * MIN_ADJUSTMENT)
     unit_max_adj = _round_up_to_5(per_unit * MAX_ADJUSTMENT)
@@ -190,7 +190,7 @@ class ChatbotProjectQuoter:
             format: "string" for plain text, "html" for HTML fragment (e.g. email body).
 
         Returns:
-            (total_with_surcharge, display_dict, formatted_output)
+            (total_after_discount, display_dict, formatted_output)
             formatted_output is from format_quote_as_string or format_quote_as_html depending on format.
         """
         total_cost = 0.0
@@ -257,25 +257,25 @@ class ChatbotProjectQuoter:
             project_breakdown["failed"] = [{"window": w, "error": e} for w, e in failed]
 
         project_breakdown["total"] = total_cost
-        surcharge_amount = total_cost * EGRESS_EXPERTS_SURCHARGE
-        project_breakdown["Surcharge"] = surcharge_amount
-        total_with_surcharge = total_cost + surcharge_amount
+        discount_amount = total_cost * DISCOUNT
+        project_breakdown["Discount"] = discount_amount
+        total_after_discount = total_cost * (1 - DISCOUNT)
 
         if installation_required:
             project_breakdown["Installation"] = installation_total
-            total_with_surcharge += installation_total
+            total_after_discount += installation_total
 
         display_dict = _build_quote_display(
             project_breakdown,
             installation_required=installation_required is True,
             installation_total=installation_total,
         )
-        print(display_dict)
+
         if format == "html":
             formatted = format_quote_as_html(display_dict)
         else:
             formatted = format_quote_as_string(display_dict)
-        return total_with_surcharge, display_dict, formatted
+        return total_after_discount, display_dict, formatted
 
 
 def format_quote_as_string(display_dict: Dict[str, Any]) -> str:
@@ -383,3 +383,48 @@ def format_quote_as_html(display_dict: Dict[str, Any]) -> str:
         parts.append("<p style=\"" + style + "\">Failed windows: " + html.escape(str(display_dict["failed"])) + "</p>")
 
     return "".join(parts)
+
+
+if __name__ == "__main__":
+    sample_config = {
+        "window_1": {
+            "config": {
+                "width": 24,
+                "height": 36,
+                "units": {
+                    "unit_1": {
+                        "unit_type": "fixed_casement",
+                        "window_area_frac": 1,
+                        "interior": "white",
+                        "exterior": "white",
+                    },
+                },
+            },
+            "quantity": 1,
+        },
+        "window_2": {
+            "config": {
+                "width": 34,
+                "height": 98,
+                "units": {
+                    "unit_1": {
+                        "unit_type": "fixed_casement",
+                        "window_area_frac": 0.5,
+                        "interior": "white",
+                        "exterior": "colour",
+                    },
+                    "unit_2": {
+                        "unit_type": "4_9_16_casement",
+                        "window_area_frac": 0.5,
+                        "interior": "stain",
+                        "exterior": "white",
+                    },
+                },
+            },
+            "quantity": 2,
+        },
+        "installation_required": True,
+    }
+    quoter = ChatbotProjectQuoter()
+    total, display_dict, quote_body = quoter.quote_project(sample_config, format="string")
+    print(quote_body, display_dict)

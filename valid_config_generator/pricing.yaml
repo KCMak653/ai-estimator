@@ -52,7 +52,7 @@
     stain_add_on: 126
   interior:
     stain_add_on: 170
-4_9_16_fixed_window:
+4_9_16_fixed_casement:
   white:
   - max_sf: 7
     price: 146.00
@@ -82,7 +82,7 @@
     stain_add_on: 100
   interior:
     stain_add_on: 70
-4_9_16_single_slider_tilt_out:
+4_9_16_single_slider:
   white:
   - max_sf: 6
     price: 190.50
@@ -107,7 +107,7 @@
     colour_base_perc: 0.25
     custom_colour_add_on: 350
     stain_add_on: 140
-4_9_16_single_hung_tilt:
+4_9_16_single_hung:
   white:
   - max_sf: 6
     price: 211.95
@@ -134,7 +134,7 @@
     stain_add_on: 140
   interior:
     stain_add_on: 0
-4_9_16_double_slider_tilt_out:
+4_9_16_double_slider:
   white:
   - max_sf: 14
     price: 308.06
@@ -352,3 +352,17 @@ double_slider:
     colour_base_perc: 0.25
     custom_colour_add_on: 350
     stain_add_on: 126
+glass:
+  - max_sf: 6
+    price: 9
+    per_sf_rate: 0
+  - max_sf: 17
+    price: 0
+    per_sf_rate: 1.5
+  - max_sf: 999
+    price: 0
+    per_sf_rate: 3
+
+labour:
+  per_sf_rate: 14.5
+  min_sf: 9

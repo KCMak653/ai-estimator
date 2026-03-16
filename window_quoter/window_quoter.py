@@ -53,15 +53,10 @@ class WindowQuoter:
             exterior_finish = getOrReturnNoneYaml(unit_data, 'exterior')
             interior_finish = "white" if interior_finish is None else interior_finish
 
-            # Price adjustment factor
-            price_adjustment_factor = getOrReturnNoneYaml(self.pricing_config, f"{unit_type}.price_list_adjustment_factor")
-            price_adjustment_factor = price_adjustment_factor if price_adjustment_factor is not None else 1
-            
             # 3. Base Price for this unit
             try:
                 base_finish = 'white' if interior_finish == 'stain' else interior_finish
                 base_p = get_base_price(unit_type, base_finish, self.pricing_config, unit_sf)
-                base_p = base_p / price_adjustment_factor
                 unit_breakdown[f'Base Price ({base_finish}, {area_frac:.1%} of window)'] = base_p
                 current_price += base_p
             except ValueError as e:
@@ -100,8 +95,14 @@ class WindowQuoter:
         """Glass price by window sq footage; glass config is tiered (flat + per_sf_rate per tier)."""
         if price_breakdown is None:
             price_breakdown = {}
+        if self.pricing_config is None:
+            price_breakdown["Error"] = "Pricing config is missing"
+            return current_price, price_breakdown
         glass_brackets = self.pricing_config.get("glass")
-        if glass_brackets is None or self.sf <= 0:
+        if glass_brackets is None:
+            price_breakdown["Error"] = "Glass pricing not found in config"
+            return current_price, price_breakdown
+        if self.sf <= 0:
             return current_price, price_breakdown
         try:
             sorted_brackets = sorted(glass_brackets, key=lambda x: x.get("max_sf"))
@@ -132,7 +133,13 @@ class WindowQuoter:
 
     def quote_labour(self, price_breakdown = {}):
         """Add labour costs (uses raw sf)."""
+        if self.pricing_config is None:
+            price_breakdown["Error"] = "Pricing config is missing"
+            return price_breakdown
         labour_pricing = self.pricing_config.get("labour")
+        if labour_pricing is None:
+            price_breakdown["Error"] = "Labour pricing not found in config"
+            return price_breakdown
         labour_cost = max(labour_pricing.get("min_sf"), self.sf_raw) * labour_pricing.get("per_sf_rate")
         price_breakdown["labour"] = labour_cost
         return price_breakdown
