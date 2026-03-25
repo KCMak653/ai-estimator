@@ -1,8 +1,11 @@
 import os
-from typing import Optional
+from typing import Any, Dict, Optional
 from urllib.parse import quote
 
 import resend
+
+# When send_quote returns pixel_lead=True, the storefront should run Meta Pixel, e.g. fbq('track', META_PIXEL_LEAD_EVENT).
+META_PIXEL_LEAD_EVENT = "Lead"
 
 _EMAIL_TEMPLATE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "email_template.html")
 _EMAIL_TEMPLATE_INSTALLATION_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "email_template_installation.html")
@@ -29,8 +32,20 @@ class QuoteEmailer:
         if not resend.api_key:
             print("[QuoteEmailer] WARNING: RESEND_API_KEY not set; emails will not send.")
 
-    def send_quote(self, quote: str, quote_id: Optional[str] = None, debug: bool = False, installation_required: bool = False):
-        """Send quote email. quote: HTML body (inserted into template as-is). quote_id: optional unique ref. If debug=True, write HTML to a file. installation_required: use installation CTA template."""
+    def send_quote(
+        self,
+        quote: str,
+        quote_id: Optional[str] = None,
+        debug: bool = False,
+        installation_required: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Send quote email. quote: HTML body (inserted into template as-is).
+        quote_id: optional unique ref. If debug=True, write HTML to a file (no send).
+        installation_required: use installation CTA template.
+
+        Returns a dict. If pixel_lead is True, Resend delivered the email; the /chat client may fire fbq('track', Lead).
+        """
         body = quote_to_email_html(quote, self.email_address, installation_required=installation_required)
         subject = f"Your Quote {quote_id}" if quote_id else "Your Generated Quote"
         if debug:
@@ -40,7 +55,14 @@ class QuoteEmailer:
             with open(path, "w", encoding="utf-8") as f:
                 f.write(body)
             print(f"[QuoteEmailer] Debug: wrote HTML to {path} (no email sent)")
-            return
+            return {
+                "sent": False,
+                "debug_saved": True,
+                "path": path,
+                "quote_id": quote_id,
+                "pixel_lead": False,
+                "meta_pixel_event": META_PIXEL_LEAD_EVENT,
+            }
         if not resend.api_key:
             raise ValueError("Email service is not configured. Please try again later.")
         try:
@@ -55,6 +77,12 @@ class QuoteEmailer:
                 }
             })
             print(f"[QuoteEmailer] Email sent to {self.email_address} (ref: {quote_id})")
+            return {
+                "sent": True,
+                "quote_id": quote_id,
+                "pixel_lead": True,
+                "meta_pixel_event": META_PIXEL_LEAD_EVENT,
+            }
         except Exception as e:
             print(f"[QuoteEmailer] Failed to send email: {e}")
             raise

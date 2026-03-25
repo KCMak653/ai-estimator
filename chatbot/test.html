@@ -2,24 +2,24 @@
   <div class="estimator-box">
     <div class="ai-badge">AI POWERED</div>
     <h2 class="est-title">Quick Window Estimate</h2>
-    <p class="est-text">Describe your windows and get a realistic price range in under a minute.</p>
+    <p class="est-text">Describe your windows or ask a question and get a realistic price range in under a minute.</p>
 
     <div class="chat-shell">
       <div class="chat-header">
         <div class="chat-title">Window Estimator</div>
-        <div class="chat-subtitle">Try: "2 casements 36x60, 1 picture 48x48"</div>
+        <div class="chat-subtitle">Ask about window pricing, types, sizes, or installation. Try: "2 casements 36x60" or "What’s the difference between casement and slider windows?"</div>
       </div>
 
       <div id="dw-chat-messages" class="chat-messages" aria-live="polite"></div>
 
       <div class="chat-input-row">
         <input id="dw-chat-input" class="chat-input" type="text"
-          placeholder="Type window sizes + types (e.g., 36x60 casement)..." autocomplete="off" />
+          placeholder="Describe your windows or ask a question..." autocomplete="off" />
         <button id="dw-chat-send" class="chat-send" type="button">Send</button>
       </div>
 
       <div class="chat-hint">
-        Tip: Include window type (casement / slider / picture) + size (W x H).
+        Tip: You can enter window type + size, or ask general questions about pricing, styles, and installation.
       </div>
     </div>
   </div>
@@ -132,7 +132,6 @@
     if (el) el.remove();
   }
 
-  /** Single attempt: returns Response or throws. */
   async function fetchChat(message, threadId, signal) {
     const resp = await fetch(CHAT_API_URL, {
       method: 'POST',
@@ -179,6 +178,11 @@
     if (resp && resp.ok) {
       const data = await resp.json();
       addMsg(data.response || "I didn't get a response. Try again.", 'ai');
+
+      if (data.client_events && data.client_events.track_meta_pixel_lead && typeof fbq === 'function') {
+        const ev = data.client_events.meta_pixel_event || 'Lead';
+        fbq('track', ev);
+      }
     } else if (resp) {
       if (resp.status === 429) addMsg("Slow down! You've sent too many messages. Please try again in a minute.", 'system');
       else if (resp.status === 403) {
@@ -197,7 +201,7 @@
     inputEl.focus();
   }
 
-  addMsg("Hi — tell me what windows you're replacing (type + size) and whether you need installation.", 'ai');
+  addMsg("Hi — you can describe the windows you're replacing, or ask general questions about window types, pricing, and installation.", 'ai');
   sendBtn.addEventListener('click', sendMessage);
   inputEl.addEventListener('keypress', function(e) { if (e.key === 'Enter') sendMessage(); });
 })();

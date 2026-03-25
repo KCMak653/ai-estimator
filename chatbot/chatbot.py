@@ -50,6 +50,8 @@ class State(TypedDict, total=False):
     config: dict
     email_address: str
     debug: bool
+    # Set when quote email is sent via Resend this turn; cleared in router each new user message.
+    client_events: Optional[dict]
 
 llm = ChatOpenAI(model="gpt-5.3-chat-latest")
 structured_llm = ChatOpenAI(model="gpt-5.3-chat-latest").with_structured_output(CompanyContextResponse)
@@ -69,7 +71,12 @@ def router(state: State):
     last_content = (getattr(last_user, "content", None) or "").strip() if last_user else ""
     if last_content and _EMAIL_RE.search(last_content):
         email = _EMAIL_RE.search(last_content).group(0).strip()
-        return {"next": Node.QUOTE_GENERATOR, "prev": Node.ROUTER, "email_address": email}
+        return {
+            "next": Node.QUOTE_GENERATOR,
+            "prev": Node.ROUTER,
+            "email_address": email,
+            "client_events": None,
+        }
     system_prompt = (
         "You are a message classifier for a window quoting system. "
         "IMPORTANT: If the assistant just offered to send the price range (e.g. 'would you like us to send your price range?') and the user replied with a short affirmation like 'yes', 'sure', 'ok', 'please', 'send it', or 'looks good', reply with exactly: send_quote. These are never inappropriate. "
@@ -97,7 +104,7 @@ def router(state: State):
         next_node = Node.GENERATOR
     else:
         next_node = Node.SUPPORT_AGENT
-    return {"next": next_node, "prev": Node.ROUTER}
+    return {"next": next_node, "prev": Node.ROUTER, "client_events": None}
 
 
 def window_expert(state: State):
@@ -193,15 +200,36 @@ def quote_generator(state: State):
                 print_quote_to_txt(format_quote_as_string(display_dict), quote_id, display_dict)
             emailer = QuoteEmailer(email)
             installation_required = config.get("installation_required", False)
-            emailer.send_quote(quote_body, quote_id=quote_id, debug=state.get("debug", False), installation_required=installation_required)
+            send_result = emailer.send_quote(
+                quote_body,
+                quote_id=quote_id,
+                debug=state.get("debug", False),
+                installation_required=installation_required,
+            )
             content_out = f"Quote sent successfully (ref: {quote_id}). Is there anything else we can help with?"
+            client_events = None
+            if send_result.get("pixel_lead"):
+                client_events = {
+                    "track_meta_pixel_lead": True,
+                    "meta_pixel_event": send_result.get("meta_pixel_event", "Lead"),
+                    "quote_id": quote_id,
+                }
+            return {
+                "messages": [AIMessage(content=content_out)],
+                "prev": Node.QUOTE_GENERATOR,
+                "client_events": client_events,
+            }
         except Exception as e:
             print(f"[quote_generator] Error: {e}")
             content_out = f"We couldn't generate the quote right now ({e}). Is there anything else we can help with?"
     else:
         content_out = "Is there anything else we can help with?"
 
-    return {"messages": [AIMessage(content=content_out)], "prev": Node.QUOTE_GENERATOR}
+    return {
+        "messages": [AIMessage(content=content_out)],
+        "prev": Node.QUOTE_GENERATOR,
+        "client_events": None,
+    }
 
 
 def support_agent(state: State):

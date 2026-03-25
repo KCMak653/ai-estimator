@@ -60,10 +60,15 @@ async def chat_endpoint(request: Request, chat_request: ChatRequest):
     # Get the last message from the assistant
     assistant_msg = result["messages"][-1].content
 
-    return {
+    payload = {
         "response": assistant_msg,
         "thread_id": thread_id,
     }
+    # If present, storefront should call fbq('track', client_events["meta_pixel_event"]) (Meta Pixel Lead).
+    client_events = result.get("client_events")
+    if client_events:
+        payload["client_events"] = client_events
+    return payload
 
 if __name__ == "__main__":
     import uvicorn
