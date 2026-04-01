@@ -71,11 +71,15 @@ def format_one_window(window_config: dict, window_label: Optional[str] = None, q
 
 
 def format_config_summary(config: dict) -> str:
-    """Format the validated config as markdown. Config is { window_1: { config: {...}, quantity: N }, ... }."""
+    """Format validated config as markdown. Preferred shape: {'windows': {window_1: {...}}, 'installation_required': bool}."""
     nbsp = "\u00a0"
     t1 = nbsp * 2
     lines = ["#### Your Request Summary:"]
-    for window_key, entry in sorted(config.items()):
+    windows = config.get("windows") if isinstance(config, dict) else None
+    if not isinstance(windows, dict):
+        windows = {}
+
+    for window_key, entry in sorted(windows.items()):
         if not isinstance(window_key, str) or not window_key.startswith("window_"):
             continue
         if not isinstance(entry, dict):

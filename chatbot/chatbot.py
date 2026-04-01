@@ -159,7 +159,7 @@ def config_generator(state: State):
 
     errs_any = False
     full_warnings = {}
-    full_config = {}
+    full_config = {"windows": {}}
     gen = ValidConfigGenerator(model_io, debug=False)
     
     for window, single_window_config in config['windows'].items():
@@ -174,11 +174,11 @@ def config_generator(state: State):
         errs, warnings, window_config = gen.generate_config(valid_config_messages)
         errs_any = errs_any | errs
         full_warnings[window] = warnings
-        full_config[window] = {"config": window_config, "quantity": quantity}
+        full_config["windows"][window] = {"config": window_config, "quantity": quantity}
     print(full_warnings)
     if errs_any:
         return {"messages": [AIMessage(content=f"I had trouble parsing one or more window configs.")], "prev": Node.GENERATOR, "config_valid": False, "config_warnings": full_warnings}
-    full_config['installation_required'] = config['installation_required']
+    full_config["installation_required"] = config.get("installation_required", False)
     print("config: ", full_config)
 
     return {"messages": [AIMessage(content="Config generated successfully.")], "prev": Node.GENERATOR, "config": full_config, "config_valid": True}
@@ -190,7 +190,11 @@ def quote_generator(state: State):
     email = state.get("email_address", "")
 
     config = state.get("config") or {}
-    if state.get("config_valid") and config and isinstance(config, dict) and any(isinstance(v, dict) and v.get("config") for v in config.values()):
+    windows = config.get("windows", {}) if isinstance(config, dict) else {}
+    has_windows = isinstance(windows, dict) and any(
+        isinstance(v, dict) and v.get("config") for v in windows.values()
+    )
+    if state.get("config_valid") and has_windows:
         try:
             quote_id = f"Q-{uuid.uuid4().hex[:10].upper()}"
             print(f"[quote_generator] Sending quote to {email}, debug={state.get('debug', False)}")

@@ -137,9 +137,6 @@ class WindowQuoter:
             price_breakdown["Error"] = "Pricing config is missing"
             return price_breakdown
         labour_pricing = self.pricing_config.get("labour")
-        if labour_pricing is None:
-            price_breakdown["Error"] = "Labour pricing not found in config"
-            return price_breakdown
         labour_cost = max(labour_pricing.get("min_sf"), self.sf_raw) * labour_pricing.get("per_sf_rate")
         price_breakdown["labour"] = labour_cost
         return price_breakdown

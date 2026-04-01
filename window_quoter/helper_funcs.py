@@ -15,8 +15,9 @@ def calculate_sf_raw(width, height):
 
 def calculate_sf(width, height):
     """Square footage from width/height (inches), rounded up to next even number."""
-    raw = calculate_sf_raw(width, height)
-    return math.ceil(raw / 2) * 2
+    adj_width = math.ceil(width / 2) * 2
+    adj_height = math.ceil(height / 2) * 2
+    return adj_width * adj_height / 144.0
 
 def calculate_lf(width, height):
     if width <= 0:
