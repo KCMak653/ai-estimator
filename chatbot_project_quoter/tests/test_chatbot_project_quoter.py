@@ -10,9 +10,10 @@ import unittest
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-ROOT = Path(__file__).resolve().parent.parent
-if str(ROOT) not in sys.path:
-    sys.path.insert(0, str(ROOT))
+PKG_ROOT = Path(__file__).resolve().parent.parent
+REPO_ROOT = PKG_ROOT.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
 from chatbot_project_quoter.chatbot_project_quoter import ChatbotProjectQuoter
 
@@ -37,7 +38,7 @@ class TestChatbotProjectQuoter(unittest.TestCase):
 
     def setUp(self):
         self.quoter = ChatbotProjectQuoter(
-            pricing_config_path=str(ROOT / "valid_config_generator" / "pricing.yaml")
+            pricing_config_path=str(REPO_ROOT / "valid_config_generator" / "pricing.yaml")
         )
 
     def _quote(self, *, installation_required: bool, quantity: int, unit_cost: float, labour: float = 0.0):

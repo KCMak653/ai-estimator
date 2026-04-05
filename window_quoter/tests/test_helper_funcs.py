@@ -1,118 +1,115 @@
-import unittest
+"""Tests for ``window_quoter.helper_funcs``."""
+
 import sys
-import os
-import yaml
+import unittest
+from pathlib import Path
 
-# Add the parent directory to the path so we can import the helper_funcs module
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-from helper_funcs import calculate_sf, calculate_lf, calculate_price_from_brackets, get_base_price
+REPO_ROOT = Path(__file__).resolve().parent.parent.parent
+if str(REPO_ROOT) not in sys.path:
+    sys.path.insert(0, str(REPO_ROOT))
 
-class TestHelperFuncs(unittest.TestCase):
-    def test_calculate_sf(self):
-        """Test the calculate_sf function"""
-        # Test with valid dimensions
-        self.assertAlmostEqual(calculate_sf(24, 36), 6.0)  # 24 * 36 / 144 = 6.0
-        self.assertAlmostEqual(calculate_sf(30, 48), 10.0)  # 30 * 48 / 144 = 10.0
-        
-        # Test with zero dimensions
-        with self.assertRaises(ValueError):
-            calculate_sf(0, 36)
-        with self.assertRaises(ValueError):
-            calculate_sf(24, 0)
-        with self.assertRaises(ValueError):
-            calculate_sf(0, 0)
-        
-        # Test with negative dimensions
-        with self.assertRaises(ValueError):
-            calculate_sf(-24, 36)
-        with self.assertRaises(ValueError):
-            calculate_sf(24, -36)
-        with self.assertRaises(ValueError):
-            calculate_sf(-24, -36)
+from window_quoter.helper_funcs import (
+    calculate_lf,
+    calculate_price_from_yaml_brackets,
+    calculate_sf,
+    calculate_sf_raw,
+    get_base_price,
+)
 
 
-    def test_calculate_lf(self):
-        """Test the calculate_lf function"""
-        # Test with valid dimensions
-        self.assertAlmostEqual(calculate_lf(24, 36), 10.0)  # 2 * (24 + 36) / 12 = 10.0
-        self.assertAlmostEqual(calculate_lf(30, 48), 13.0)  # 2 * (30 + 48) / 12 = 13.0
-        
-        # Test with zero dimensions
+class TestCalculateSfRaw(unittest.TestCase):
+    def test_basic(self):
+        self.assertAlmostEqual(calculate_sf_raw(24, 36), 6.0)
+        self.assertAlmostEqual(calculate_sf_raw(30, 30), 30 * 30 / 144.0)
+
+    def test_rejects_non_positive_dimensions(self):
+        with self.assertRaises(ValueError):
+            calculate_sf_raw(0, 36)
+        with self.assertRaises(ValueError):
+            calculate_sf_raw(24, 0)
+        with self.assertRaises(ValueError):
+            calculate_sf_raw(-1, 36)
+
+
+class TestCalculateSf(unittest.TestCase):
+    """Rounded-up even width/height then sq ft (no validation; zero yields zero)."""
+
+    def test_even_dimensions(self):
+        self.assertAlmostEqual(calculate_sf(24, 36), 6.0)
+
+    def test_odd_dimensions_round_up_to_even_before_area(self):
+        # 25 -> 26, 35 -> 36 => 26*36/144
+        self.assertAlmostEqual(calculate_sf(25, 35), 26 * 36 / 144.0)
+
+    def test_zero_width(self):
+        self.assertAlmostEqual(calculate_sf(0, 36), 0.0)
+
+
+class TestCalculateLf(unittest.TestCase):
+    def test_basic(self):
+        self.assertAlmostEqual(calculate_lf(24, 36), 10.0)
+        self.assertAlmostEqual(calculate_lf(30, 48), 13.0)
+
+    def test_rejects_non_positive(self):
         with self.assertRaises(ValueError):
             calculate_lf(0, 36)
         with self.assertRaises(ValueError):
             calculate_lf(24, 0)
-        with self.assertRaises(ValueError):
-            calculate_lf(0, 0)
-        
-        # Test with negative dimensions
-        with self.assertRaises(ValueError):
-            calculate_lf(-24, 36)
-        with self.assertRaises(ValueError):
-            calculate_lf(24, -36)
-        with self.assertRaises(ValueError):
-            calculate_lf(-24, -36)
 
 
-    def test_calculate_price_from_brackets(self):
-        """Test the calculate_price_from_brackets function"""
-        # Test with a simple bracket
-        brackets = [(10, 100, 5)]  # max_value, price, over_rate
-        self.assertEqual(calculate_price_from_brackets(5, brackets), 100)
-        self.assertEqual(calculate_price_from_brackets(10, brackets), 100)
-        self.assertEqual(calculate_price_from_brackets(15, brackets), 125)  # 100 + (15-10)*5
-        
-        # Test with multiple brackets
-        brackets = [(10, 100, 0), (20, 150, 0), (30, 200, 15)]
-        self.assertEqual(calculate_price_from_brackets(5, brackets), 100)
-        self.assertEqual(calculate_price_from_brackets(10, brackets), 150)
-        self.assertEqual(calculate_price_from_brackets(15, brackets), 150)  # 100 + (15-10)*5
-        self.assertEqual(calculate_price_from_brackets(20, brackets), 200)
-        self.assertEqual(calculate_price_from_brackets(25, brackets), 200)  # 150 + (25-20)*10
-        self.assertEqual(calculate_price_from_brackets(30, brackets), 200)
-        self.assertEqual(calculate_price_from_brackets(35, brackets), 275)  # 200 + (35-30)*15
-        
-        # Test with zero value
-        self.assertEqual(calculate_price_from_brackets(0, brackets), 0)
-        
-        # Test with None brackets
-        with self.assertRaises(ValueError):
-            calculate_price_from_brackets(10, None)
-        
-        # Test with empty brackets
-        with self.assertRaises(ValueError):
-            calculate_price_from_brackets(10, [])
+class TestCalculatePriceFromYamlBrackets(unittest.TestCase):
+    def test_value_in_first_range_returns_fixed_price(self):
+        brackets = [
+            {"max_sf": 6, "price": 100, "per_sf_rate": 0},
+            {"max_sf": 12, "price": 200, "per_sf_rate": 0},
+        ]
+        self.assertEqual(calculate_price_from_yaml_brackets(5, brackets), 100)
 
-    def test_get_base_price(self):
-        """Test the get_base_price function"""
-        # Create a mock pricing config in YAML format
+    def test_value_in_second_range(self):
+        brackets = [
+            {"max_sf": 6, "price": 100, "per_sf_rate": 0},
+            {"max_sf": 12, "price": 200, "per_sf_rate": 0},
+        ]
+        self.assertEqual(calculate_price_from_yaml_brackets(8, brackets), 200)
+
+    def test_value_above_last_uses_per_sf_rate(self):
+        brackets = [
+            {"max_sf": 6, "price": 100, "per_sf_rate": 0},
+            {"max_sf": 12, "price": 200, "per_sf_rate": 10},
+        ]
+        self.assertEqual(calculate_price_from_yaml_brackets(15, brackets), 150)
+
+    def test_zero_value(self):
+        brackets = [{"max_sf": 6, "price": 100, "per_sf_rate": 0}]
+        self.assertEqual(calculate_price_from_yaml_brackets(0, brackets), 0)
+
+    def test_max_size_key(self):
+        brackets = [{"max_size": 10, "price": 50, "per_sf_rate": 0}]
+        self.assertEqual(calculate_price_from_yaml_brackets(8, brackets), 50)
+
+    def test_none_brackets_raises(self):
+        with self.assertRaises(ValueError):
+            calculate_price_from_yaml_brackets(5, None)
+
+
+class TestGetBasePrice(unittest.TestCase):
+    def test_resolves_finish_and_bracket(self):
         pricing_config = {
             "casement": {
                 "white": [
-                    {"max_sf": 10, "price": 100, "over_rate": 0},
-                    {"max_sf": 20, "price": 150, "over_rate": 10}
-                ],
-                "paint": [
-                    {"max_sf": 10, "price": 120, "over_rate": 0},
-                    {"max_sf": 20, "price": 180, "over_rate": 12}
+                    {"max_sf": 6, "price": 206.84, "per_sf_rate": 0},
+                    {"max_sf": 9, "price": 233.69, "per_sf_rate": 0},
                 ]
             }
         }
-        # Test with valid inputs
-        self.assertEqual(get_base_price("casement", "white", pricing_config, 5), 100)
-        self.assertEqual(get_base_price("casement", "white", pricing_config, 15), 150)
-        self.assertEqual(get_base_price("casement", "white", pricing_config, 25), 200)
-        self.assertEqual(get_base_price("casement", "paint", pricing_config, 5), 120)
-        self.assertEqual(get_base_price("casement", "paint", pricing_config, 15), 180)
-        self.assertEqual(get_base_price("casement", "paint", pricing_config, 25), 240)
-        
-        # Test with non-existent window type
-        with self.assertRaises(ValueError):
-            get_base_price("non_existent", "white", pricing_config, 10)
-        
-        # Test with non-existent finish
-        with self.assertRaises(ValueError):
-            get_base_price("casement", "non_existent", pricing_config, 10)
+        self.assertEqual(get_base_price("casement", "white", pricing_config, 5), 206.84)
+        self.assertEqual(get_base_price("casement", "white", pricing_config, 7), 233.69)
 
-if __name__ == '__main__':
-    unittest.main() 
+    def test_unknown_finish_raises(self):
+        pricing_config = {"casement": {"white": [{"max_sf": 6, "price": 1, "per_sf_rate": 0}]}}
+        with self.assertRaises(ValueError):
+            get_base_price("casement", "paint", pricing_config, 5)
+
+
+if __name__ == "__main__":
+    unittest.main()

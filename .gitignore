@@ -9,6 +9,7 @@ package*
 --extra-params*
 node_modules/**
 quotes/**
+*.txt
 
 # validation_quotes: only track .ipynb and .py
 validation_quotes/**
