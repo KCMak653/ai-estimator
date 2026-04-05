@@ -438,6 +438,25 @@ if __name__ == "__main__":
         },
         "installation_required": True,
     }
+    sample_config = {'windows': {
+        "window_1": {
+            "config": {
+                "width": 30,
+                "height": 30,
+                "units": {
+                    "unit_1": {
+                        "unit_type": "casement",
+                        "window_area_frac": 1,
+                        "interior": "white",
+                        "exterior": "white",
+                    },
+                },
+            },
+            "quantity": 1,
+        }
+        },
+        "installation_required": False,
+    }
     print('sample', sample_config)
     quoter = ChatbotProjectQuoter()
     total, display_dict, quote_body = quoter.quote_project(sample_config, format="string")
