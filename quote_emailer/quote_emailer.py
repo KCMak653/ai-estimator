@@ -6,6 +6,7 @@ import resend
 
 # When send_quote returns pixel_lead=True, the storefront should run Meta Pixel, e.g. fbq('track', META_PIXEL_LEAD_EVENT).
 META_PIXEL_LEAD_EVENT = "Lead"
+INTERNAL_QUOTE_COPY_EMAIL_ENV = "INTERNAL_QUOTE_COPY_EMAIL"
 
 _EMAIL_TEMPLATE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "email_template.html")
 _EMAIL_TEMPLATE_INSTALLATION_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "email_template_installation.html")
@@ -28,6 +29,7 @@ def quote_to_email_html(quote_html: str, user_email: str, installation_required:
 class QuoteEmailer:
     def __init__(self, email_address: str):
         self.email_address = email_address
+        self.internal_copy_email = (os.getenv(INTERNAL_QUOTE_COPY_EMAIL_ENV) or "").strip()
         resend.api_key = os.getenv("RESEND_API_KEY")
         if not resend.api_key:
             print("[QuoteEmailer] WARNING: RESEND_API_KEY not set; emails will not send.")
@@ -66,7 +68,7 @@ class QuoteEmailer:
         if not resend.api_key:
             raise ValueError("Email service is not configured. Please try again later.")
         try:
-            resend.Emails.send({
+            payload = {
                 "from": "Direct Windows <hello@quote.directwindows.ca>",
                 "to": self.email_address,
                 "subject": subject,
@@ -75,13 +77,18 @@ class QuoteEmailer:
                     "List-Unsubscribe": f"<https://direct-windows-quote.myshopify.com/pages/unsubscribe?contact[email]={self.email_address}>",
                     "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"
                 }
-            })
+            }
+            # Optional internal duplicate of every quote email (set via env var).
+            if self.internal_copy_email and self.internal_copy_email.lower() != self.email_address.lower():
+                payload["bcc"] = [self.internal_copy_email]
+            resend.Emails.send(payload)
             print(f"[QuoteEmailer] Email sent to {self.email_address} (ref: {quote_id})")
             return {
                 "sent": True,
                 "quote_id": quote_id,
                 "pixel_lead": True,
                 "meta_pixel_event": META_PIXEL_LEAD_EVENT,
+                "internal_copy_email": self.internal_copy_email or None,
             }
         except Exception as e:
             print(f"[QuoteEmailer] Failed to send email: {e}")
