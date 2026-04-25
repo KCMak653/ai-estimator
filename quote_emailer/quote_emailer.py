@@ -19,11 +19,20 @@ def _load_template(installation_required: bool = False) -> str:
         return f.read()
 
 
-def quote_to_email_html(quote_html: str, user_email: str, installation_required: bool = False) -> str:
+def quote_to_email_html(
+    quote_html: str,
+    user_email: str,
+    quote_id: Optional[str] = None,
+    installation_required: bool = False,
+) -> str:
     """Wrap quote HTML body in the email template (header + body + footer). Body is inserted as-is."""
     unsubscribe_url = f"{UNSUBSCRIBE_PAGE_URL}?contact[email]={quote(user_email, safe='')}"
     template = _load_template(installation_required)
-    return template.replace("{{body}}", quote_html).replace("{{unsubscribe_url}}", unsubscribe_url)
+    return (
+        template.replace("{{body}}", quote_html)
+        .replace("{{unsubscribe_url}}", unsubscribe_url)
+        .replace("{{quote_id}}", str(quote_id or ""))
+    )
 
 
 class QuoteEmailer:
@@ -48,7 +57,12 @@ class QuoteEmailer:
 
         Returns a dict. If pixel_lead is True, Resend delivered the email; the /chat client may fire fbq('track', Lead).
         """
-        body = quote_to_email_html(quote, self.email_address, installation_required=installation_required)
+        body = quote_to_email_html(
+            quote,
+            self.email_address,
+            quote_id=quote_id,
+            installation_required=installation_required,
+        )
         subject = f"Your Quote {quote_id}" if quote_id else "Your Generated Quote"
         if debug:
             out_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "quotes")
