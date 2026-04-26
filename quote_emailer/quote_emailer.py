@@ -95,11 +95,6 @@ class QuoteEmailer:
             internal_copy_email = (os.getenv(INTERNAL_QUOTE_COPY_EMAIL_ENV) or "").strip()
             if internal_copy_email and internal_copy_email.lower() != self.email_address.lower():
                 payload["bcc"] = [internal_copy_email]
-                print(f"[QuoteEmailer] Internal BCC enabled: {internal_copy_email}")
-            elif internal_copy_email:
-                print("[QuoteEmailer] Internal BCC skipped: same as recipient")
-            else:
-                print(f"[QuoteEmailer] Internal BCC not set ({INTERNAL_QUOTE_COPY_EMAIL_ENV})")
             resend.Emails.send(payload)
             print(f"[QuoteEmailer] Email sent to {self.email_address} (ref: {quote_id})")
             return {
