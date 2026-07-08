@@ -15,6 +15,7 @@ chatbot service (`chatbot_app:app`, FastAPI `POST /chat`), not the legacy Flask 
    | `OPENAI_API_KEY` | a key from YOUR OpenAI account (platform.openai.com → API keys; billing must be enabled) |
    | `CHAT_CUSTOM_HEADER_KEY` | `default-key` (must match the site widget; public by design — the rate limit is the real control) |
    | `RESEND_API_KEY` | optional — without it the bot works but quote emails don't send (customer sees "couldn't generate the quote right now" at the email step). See below. |
+   | `OPENAI_MODEL` | optional — defaults to `gpt-5.4-mini` (cheap tier, right for this workload). Set only if that model name doesn't exist on your account (check platform.openai.com/docs/models) or you want to try another. |
 5. Settings → Networking → **Generate Domain**. Copy the `https://….up.railway.app` URL.
 6. Update the website: in `~/Desktop/active/upfront-windows/site/assets/js/chat.js`,
    set `CHAT_API_URL` to `https://<your-domain>.up.railway.app/chat` and redeploy the site.
