@@ -1,1 +1,1 @@
-web: python api.py
+web: uvicorn chatbot_app:app --host 0.0.0.0 --port $PORT
