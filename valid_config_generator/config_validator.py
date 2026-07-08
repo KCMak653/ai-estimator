@@ -1,4 +1,6 @@
-from typing import Any, List, Optional, Set, Union
+import re
+
+from typing import Any, List, Optional, Set, Union, Tuple # Removed Dict, added Tuple
 from util.yaml_util import getOrReturnNoneYaml
 
 class ConfigValidator:
@@ -17,6 +19,56 @@ class ConfigValidator:
     # ... (keep all other enum/set definitions from the previous version) ...
     INTERIOR_OPTIONS: Set[str] = {"white", "colour", "stain"}
     EXTERIOR_OPTIONS: Set[str] = {"white", "colour", "custom_colour", "stain"}
+    BOOLEAN_OPTIONS: Set[bool] = {True, False}
+
+    SHAPES_TYPES: Set[Optional[str]] = {
+        None, "half_circle", "quarter_circle", "ellipse", "true_ellipse",
+        "triangle", "trapezoid", "extended_arch"
+    }
+
+    GLASS_TYPES: Set[str] = {"double", "triple"}
+    GLASS_DOUBLE_SUBTYPES: Set[str] = {
+        "lowe_180", "lowe_272", "lowe_366", "lowe_180_pinhead",
+        "lowe_272_pinhead", "lowe_180_neat", "lowe_272_neat",
+        "lowe_180_privacy", "lowe_272_privacy", "lowe_180_i89",
+        "tinted_clear", "tinted_lowe_180", "tinted_lowe_272",
+        "frosted_clear", "laminated_clear", "laminated_lowe_180",
+        "laminated_lowe_272", "laminated_laminated",
+        "tempered_lowe_180", "tempered_lowe_272"
+    }
+    GLASS_TRIPLE_SUBTYPES: Set[str] = {
+        "clear_clear_clear", "frosted_clear_clear",
+        "lowe_180_clear_clear", "lowe_272_clear_clear", "lowe_366_clear_clear",
+        "lowe_180_clear_lowe_366", "lowe_180_clear_lowe_180",
+        "lowe_272_clear_lowe_272", "lowe_180_lowe_180_i89",
+        "lowe_272_clear_frosted", "lowe_180_clear_frosted",
+        "lowe_272_clear_delta_frost", "lowe_180_clear_delta_frost",
+        "lowe_272_clear_taffeta", "lowe_180_clear_taffeta",
+        "lowe_272_clear_everglade", "lowe_180_clear_everglade",
+        "lowe_272_clear_acid_edge", "lowe_180_clear_acid_edge",
+        "lowe_272_tint_various", "lowe_180_tint_various"
+    }
+
+    BRICKMOULD_SIZES: Set[str] = {"0", "5_8", "1_1_4", "1_5_8", "2"}
+    BRICKMOULD_FINISHES: Set[str] = {"white", "colour", "stain"}
+
+    CASING_EXTENSION_TYPES: Set[Optional[str]] = {
+        None, "wood_return", "vinyl_pkg_1_3_8_casing_2_3_4",
+        "vinyl_pkg_2_3_8_casing_2_3_4", "vinyl_pkg_3_3_8_casing_2_3_4",
+        "vinyl_pkg_4_5_8_casing_2_3_4", "vinyl_pkg_1_3_8_casing_3_1_2",
+        "vinyl_pkg_2_3_8_casing_3_1_2", "vinyl_pkg_3_3_8_casing_3_1_2",
+        "vinyl_pkg_4_5_8_casing_3_1_2", "vinyl_ext_1_3_8",
+        "vinyl_ext_2_3_8", "vinyl_ext_3_3_8", "vinyl_ext_4_5_8",
+        "vinyl_ext_no_groove_2_1_2", "vinyl_ext_no_groove_3_1_2",
+        "vinyl_ext_no_groove_4_1_2", "vinyl_casing_2_3_4",
+        "vinyl_casing_3_1_2", "vinyl_casing_solid_2_3_4",
+        "vinyl_casing_solid_3_1_2", "vinyl_pkg_1_3_8_casing_step_2_3_4",
+        "vinyl_pkg_2_3_8_casing_step_2_3_4", "vinyl_pkg_3_3_8_casing_step_2_3_4",
+        "vinyl_pkg_4_5_8_casing_step_2_3_4", "vinyl_pkg_1_3_8_casing_step_3_1_2",
+        "vinyl_pkg_2_3_8_casing_step_3_1_2", "vinyl_pkg_3_3_8_casing_step_3_1_2",
+        "vinyl_pkg_4_5_8_casing_step_3_1_2"
+    }
+    CASING_EXTENSION_FINISHES: Set[str] = {"white", "stain", "colour"}
 
 
     # --- Main Validation Method ---
@@ -38,7 +90,11 @@ class ConfigValidator:
              return True, ["Input must be a dictionary."]
 
         # --- 1. Validate Top-Level Required Fields ---
-        self._validate_required(config, 'units', errors)
+        self._validate_required(config, 'width', errors)
+        self._validate_required(config, 'height', errors)
+        self._validate_required(config, 'units', errors) # units section is required
+
+        # Check top-level types
         self._validate_type(config, 'width', (int, float), errors, force_positive=True)
         self._validate_type(config, 'height', (int, float), errors, force_positive=True)
 
@@ -46,6 +102,10 @@ class ConfigValidator:
         units_data = getOrReturnNoneYaml(config, 'units')
         if units_data is not None:
             self._validate_units(units_data, errors)
+
+        # --- 3. Validate Window-Scoped Sections (Brickmould, Casing) ---
+        self._validate_brickmould(getOrReturnNoneYaml(config, 'brickmould'), errors)
+        self._validate_casing_extension(getOrReturnNoneYaml(config, 'casing_extension'), errors)
 
         return bool(errors), errors
 
@@ -107,6 +167,11 @@ class ConfigValidator:
 
         if force_positive and isinstance(value, (int, float)) and value <= 0:
              errors.append(f"Value for '{key}' must be positive and non-zero: Got {value}")
+
+
+    def _validate_boolean(self, data: Optional[dict], key: str, errors: List[str], optional: bool = False):
+         """Specific validation for boolean fields."""
+         self._validate_type(data, key, bool, errors, optional=optional)
 
 
     # --- Units Section Validator ---
@@ -184,6 +249,10 @@ class ConfigValidator:
                 self._validate_unit_double_hung(unit_data, unit_key, errors)
             elif unit_type == 'double_slider':
                 self._validate_unit_double_slider(unit_data, unit_key, errors)
+        
+        # Validate unit-scoped sections (glass is required, shapes is optional)
+        self._validate_unit_glass(getOrReturnNoneYaml(unit_data, 'glass'), unit_key, errors)
+        self._validate_unit_shapes(getOrReturnNoneYaml(unit_data, 'shapes'), unit_key, errors)
 
     # --- Unit Type Specific Validators ---
     # Update type hints and checks for dict
@@ -195,12 +264,34 @@ class ConfigValidator:
         self._validate_required(unit_data, 'exterior', errors)
         self._validate_enum(unit_data, 'exterior', self.EXTERIOR_OPTIONS, errors, optional=False)
 
+        hardware_data = getOrReturnNoneYaml(unit_data, 'hardware')
+        if hardware_data is not None:
+             if not isinstance(hardware_data, dict):
+                 errors.append(f"Unit '{unit_key}' hardware section must be a dict.")
+             else:
+                 self._validate_boolean(hardware_data, 'rotto_corner_drive_1_corner', errors, optional=True)
+                 self._validate_boolean(hardware_data, 'rotto_corner_drive_2_corners', errors, optional=True)
+                 self._validate_boolean(hardware_data, 'egress_hardware', errors, optional=True)
+                 self._validate_boolean(hardware_data, 'hinges_add_over_30', errors, optional=True)
+                 self._validate_boolean(hardware_data, 'limiters', errors, optional=True)
+                 self._validate_boolean(hardware_data, 'encore_system', errors, optional=True)
+
+
     def _validate_unit_awning(self, unit_data: Optional[dict], unit_key: str, errors: List[str]):
         """Validates awning-specific fields for a unit."""
         self._validate_required(unit_data, 'interior', errors)
         self._validate_enum(unit_data, 'interior', self.INTERIOR_OPTIONS, errors, optional=False)
         self._validate_required(unit_data, 'exterior', errors)
         self._validate_enum(unit_data, 'exterior', self.EXTERIOR_OPTIONS, errors, optional=False)
+
+        hardware_data = getOrReturnNoneYaml(unit_data, 'hardware')
+        if hardware_data is not None:
+             if not isinstance(hardware_data, dict):
+                 errors.append(f"Unit '{unit_key}' hardware section must be a dict.")
+             else:
+                 self._validate_boolean(hardware_data, 'encore_system', errors, optional=True)
+                 self._validate_boolean(hardware_data, 'limiters', errors, optional=True)
+
 
     def _validate_unit_fixed_casement(self, unit_data: Optional[dict], unit_key: str, errors: List[str]):
         """Validates fixed_casement-specific fields for a unit."""
@@ -244,6 +335,87 @@ class ConfigValidator:
         self._validate_enum(unit_data, 'exterior', self.EXTERIOR_OPTIONS, errors, optional=False)
 
 
+    # --- Unit-Scoped Section Validators ---
+    
+    def _validate_unit_glass(self, glass_data: Optional[dict], unit_key: str, errors: List[str]):
+        """Validates the 'glass' section for a unit."""
+        if glass_data is None:
+             errors.append(f"Required section 'glass' is missing for unit '{unit_key}'.")
+             return
+        if not isinstance(glass_data, dict):
+             errors.append(f"Unit '{unit_key}' glass section must be a dict.")
+             return
+
+        self._validate_required(glass_data, 'type', errors)
+        self._validate_required(glass_data, 'subtype', errors)
+        self._validate_required(glass_data, 'thickness_mm', errors)
+
+        self._validate_enum(glass_data, 'type', self.GLASS_TYPES, errors)
+        self._validate_type(glass_data, 'thickness_mm', (int, float), errors, force_positive=True)
+
+        glass_type = glass_data.get('type')
+        subtype = glass_data.get('subtype')
+
+        if subtype is not None: # Only validate subtype if it exists
+            if glass_type == 'double':
+                self._validate_enum(glass_data, 'subtype', self.GLASS_DOUBLE_SUBTYPES, errors)
+            elif glass_type == 'triple':
+                self._validate_enum(glass_data, 'subtype', self.GLASS_TRIPLE_SUBTYPES, errors)
+            elif glass_type is not None: # Error only if type exists but isn't double/triple
+                errors.append(f"Cannot validate glass subtype for unit '{unit_key}' because glass type ('{glass_type}') is not 'double' or 'triple'.")
+
+    def _validate_unit_shapes(self, shapes_data: Optional[dict], unit_key: str, errors: List[str]):
+        """Validates the 'shapes' section for a unit (optional section)."""
+        if shapes_data is None:
+             return # Optional section, None is valid
+        if not isinstance(shapes_data, dict):
+            errors.append(f"Unit '{unit_key}' shapes section must be a dict if present.")
+            return
+
+        self._validate_enum(shapes_data, 'type', self.SHAPES_TYPES, errors, optional=True)
+
+        extras_data = getOrReturnNoneYaml(shapes_data, 'extras')
+        if extras_data is not None:
+             if not isinstance(extras_data, dict):
+                 errors.append(f"Unit '{unit_key}' shapes.extras must be a dict.")
+             else:
+                 self._validate_boolean(extras_data, 'brickmould', errors, optional=True)
+                 self._validate_boolean(extras_data, 'inside_casing_all_around', errors, optional=True)
+                 self._validate_boolean(extras_data, 'extension', errors, optional=True)
+
+    # --- Window-Scoped Section Validators ---
+    # Update type hints and checks for dict
+
+
+
+    def _validate_brickmould(self, bm_data: Optional[dict], errors: List[str]):
+        """Validates the 'brickmould' section (optional section)."""
+        if bm_data is None:
+             return # Optional section
+        if not isinstance(bm_data, dict):
+            errors.append("'brickmould' section must be a dict if present.")
+            return
+
+        self._validate_boolean(bm_data, 'include', errors, optional=True)
+        self._validate_enum(bm_data, 'size', self.BRICKMOULD_SIZES, errors, optional=True)
+        self._validate_enum(bm_data, 'finish', self.BRICKMOULD_FINISHES, errors, optional=True)
+        self._validate_boolean(bm_data, 'include_bay_bow_coupler', errors, optional=True)
+        self._validate_boolean(bm_data, 'include_bay_bow_add_on', errors, optional=True)
+
+    def _validate_casing_extension(self, ce_data: Optional[dict], errors: List[str]):
+        """Validates the 'casing_extension' section (optional section)."""
+        if ce_data is None:
+             return # Optional section
+        if not isinstance(ce_data, dict):
+            errors.append("'casing_extension' section must be a dict if present.")
+            return
+
+        self._validate_enum(ce_data, 'type', self.CASING_EXTENSION_TYPES, errors, optional=True)
+        self._validate_enum(ce_data, 'finish', self.CASING_EXTENSION_FINISHES, errors, optional=True)
+        self._validate_boolean(ce_data, 'include_bay_bow_extension', errors, optional=True)
+        self._validate_boolean(ce_data, 'include_bay_pow_plywood', errors, optional=True)
+
+
 # --- Example Usage ---
 if __name__ == "__main__":
     import yaml
@@ -258,9 +430,9 @@ if __name__ == "__main__":
         print("Testing window_example2.yaml configuration:")
         print(f"Config loaded: {config}")
         
-        has_errors, errors = validator.validate(config)
+        is_valid, errors = validator.validate(config)
         
-        if has_errors:
+        if is_valid:
             print("✗ Configuration is INVALID")
             print("Errors found:")
             for error in errors:
@@ -271,48 +443,6 @@ if __name__ == "__main__":
     except FileNotFoundError:
         print("Error: window_example2.yaml not found in current directory")
         print("Make sure to run this from the directory containing the YAML file")
-    except yaml.YAMLError as e:
-        print(f"Error parsing YAML file: {e}")
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-
-    # Test with window_example_invalid.yaml (expect invalid)
-    try:
-        with open('window_example_invalid.yaml', 'r') as file:
-            invalid_config = yaml.safe_load(file)
-        print("\n" + "="*50)
-        print("Testing window_example_invalid.yaml (expect INVALID):")
-        has_errors, errors = validator.validate(invalid_config)
-        if has_errors:
-            print("✗ Configuration is INVALID (expected)")
-            print("Errors found:")
-            for error in errors:
-                print(f"  - {error}")
-        else:
-            print("✓ Configuration is VALID (expected to be invalid)")
-    except FileNotFoundError:
-        print("\nwindow_example_invalid.yaml not found, skipping invalid config test")
-    except yaml.YAMLError as e:
-        print(f"Error parsing YAML file: {e}")
-    except Exception as e:
-        print(f"Unexpected error: {e}")
-
-    # Test with window_example_invalid2.yaml (expect invalid: negative height, invalid interior)
-    try:
-        with open('window_example_invalid2.yaml', 'r') as file:
-            invalid_config2 = yaml.safe_load(file)
-        print("\n" + "="*50)
-        print("Testing window_example_invalid2.yaml (expect INVALID):")
-        has_errors, errors = validator.validate(invalid_config2)
-        if has_errors:
-            print("✗ Configuration is INVALID (expected)")
-            print("Errors found:")
-            for error in errors:
-                print(f"  - {error}")
-        else:
-            print("✓ Configuration is VALID (expected to be invalid)")
-    except FileNotFoundError:
-        print("\nwindow_example_invalid2.yaml not found, skipping")
     except yaml.YAMLError as e:
         print(f"Error parsing YAML file: {e}")
     except Exception as e:
@@ -330,14 +460,19 @@ if __name__ == "__main__":
                 'unit_type': 'casement',
                 'window_area_frac': 1.0,
                 'interior': 'white',
-                'exterior': 'colour'
+                'exterior': 'colour',
+                'glass': {
+                    'type': 'double',
+                    'subtype': 'lowe_180',
+                    'thickness_mm': 4
+                }
             }
         }
     }
     
-    has_errors, errors = validator.validate(simple_config)
+    is_valid, errors = validator.validate(simple_config)
     
-    if has_errors:
+    if is_valid:
         print("✗ Configuration is INVALID")
         print("Errors found:")
         for error in errors:

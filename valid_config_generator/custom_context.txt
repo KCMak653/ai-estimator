@@ -18,6 +18,10 @@ F: Fixed Casement
 Finishes:
 W: White
 
+Sidings:
+jamb = casing
+
+
 Industry conventions:
 
 - For exterior/interior finishes (i.e <window_type>.interior, <window_type>.exterior) any colour that isn't white would be considered colour respectively. i.e red in, black in, yellow out would all be classifed as colour
