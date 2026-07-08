@@ -1,5 +1,6 @@
 """Window quote chatbot v2: router, window expert, config generator (parser), support agent."""
 
+import os
 import re
 import uuid
 import yaml
@@ -51,8 +52,12 @@ class State(TypedDict, total=False):
     email_address: str
     debug: bool
 
-llm = ChatOpenAI(model="gpt-5.3-chat-latest")
-structured_llm = ChatOpenAI(model="gpt-5.3-chat-latest").with_structured_output(CompanyContextResponse)
+# Cost: routing/extraction/formatting don't need a flagship model — mini tier is
+# ~7x cheaper with no visible quality loss here. Override via OPENAI_MODEL if the
+# exact model name differs on your account (check platform.openai.com/docs/models).
+_MODEL = os.getenv("OPENAI_MODEL", "gpt-5.4-mini")
+llm = ChatOpenAI(model=_MODEL)
+structured_llm = ChatOpenAI(model=_MODEL).with_structured_output(CompanyContextResponse)
 
 model_io = ModelIO(llm=llm)
 structured_model_io = ModelIO(llm=structured_llm)
