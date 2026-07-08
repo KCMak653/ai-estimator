@@ -242,20 +242,41 @@ def support_agent(state: State):
     if prev == Node.GENERATOR:
         if state.get("config_valid"):
             config = state.get("config") or {}
-            summary = format_config_summary(config)
             email = state.get("email_address") or ""
-            if email:
-                follow_up = (
-                    "\n\n---\n\n"
-                    "Does this look correct, or would you like any modifications? "
-                    f"If it looks good, would you like us to send your price range?"
-                )
-            else:
-                follow_up = (
-                    "\n\n---\n\n"
-                    "Does this look correct, or would you like any modifications? "
-                "If it looks good, please share your email address and we’ll send your price range to you."
-                )
+            # SHOW_PRICE_IN_CHAT (default on): show the price range directly in chat
+            # instead of gating it behind an email. Set SHOW_PRICE_IN_CHAT=false to
+            # restore the email-gated flow once the emailer is configured.
+            summary = None
+            follow_up = None
+            if os.getenv("SHOW_PRICE_IN_CHAT", "true").strip().lower() not in ("false", "0", "no"):
+                try:
+                    _total, display_dict, _ = ChatbotProjectQuoter().quote_project(config)
+                    if (display_dict.get("total_max_adjusted") or 0) > 0:
+                        quote_text = format_quote_as_string(display_dict).strip().replace("\n", "<br>\n")
+                        summary = "#### Your Estimated Price Range:<br>\n" + quote_text
+                        follow_up = (
+                            "\n\n---\n\n"
+                            "This estimate is based on what you've described — your final price is "
+                            "confirmed after a free exact measure. Does everything look right, or "
+                            "would you like to change anything? You can also add more windows, or "
+                            "call us at 365-832-8589 to book your free measure."
+                        )
+                except Exception as e:
+                    print(f"[support_agent] price-in-chat failed, falling back to summary: {e}")
+            if summary is None:
+                summary = format_config_summary(config)
+                if email:
+                    follow_up = (
+                        "\n\n---\n\n"
+                        "Does this look correct, or would you like any modifications? "
+                        f"If it looks good, would you like us to send your price range?"
+                    )
+                else:
+                    follow_up = (
+                        "\n\n---\n\n"
+                        "Does this look correct, or would you like any modifications? "
+                    "If it looks good, please share your email address and we’ll send your price range to you."
+                    )
             return {"messages": [AIMessage(content=summary + follow_up)], "prev": Node.SUPPORT_AGENT}
         warnings = state.get("config_warnings") or {}
         if isinstance(warnings, list):

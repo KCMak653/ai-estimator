@@ -317,7 +317,9 @@ def format_quote_as_string(display_dict: Dict[str, Any]) -> str:
         lines.append("")
 
     if installation_req and (display_dict.get("installation_min_adjusted") or 0) > 0:
-        lines.append(f"Installation: ${display_dict.get('installation_min_adjusted', 0):,} - ${display_dict.get('installation_max_adjusted', 0):,}")
+        # Profit-floor addons can push the low scenario above the high one; always render low-to-high.
+        inst_lo, inst_hi = sorted((display_dict.get("installation_min_adjusted", 0), display_dict.get("installation_max_adjusted", 0)))
+        lines.append(f"Installation: ${inst_lo:,} - ${inst_hi:,}")
         lines.append("")
 
     total_label = "Total (including installation):" if installation_req else "Total:"
@@ -372,8 +374,8 @@ def format_quote_as_html(display_dict: Dict[str, Any]) -> str:
         parts.append(f'<p style="{style}">Total Price (windows only): <strong>${w_min:,} - ${w_max:,}</strong></p>')
 
     if installation_req and (display_dict.get("installation_min_adjusted") or 0) > 0:
-        inst_min = display_dict.get("installation_min_adjusted", 0)
-        inst_max = display_dict.get("installation_max_adjusted", 0)
+        # Profit-floor addons can push the low scenario above the high one; always render low-to-high.
+        inst_min, inst_max = sorted((display_dict.get("installation_min_adjusted", 0), display_dict.get("installation_max_adjusted", 0)))
         parts.append(f'<p style="{style}">Installation: <strong>${inst_min:,} - ${inst_max:,}</strong></p>')
 
     total_label = "Total (including installation):" if installation_req else "Total:"
