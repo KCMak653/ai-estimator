@@ -21,6 +21,7 @@ from project_quoter.window_description_parser import WindowDescriptionParser
 from valid_config_generator.valid_config_generator import ValidConfigGenerator
 from chatbot_project_quoter import ChatbotProjectQuoter, format_quote_as_string
 from quote_emailer.quote_emailer import QuoteEmailer
+from quote_emailer.pdf_estimate import render_estimate_pdf
 
 from .utils import format_config_summary, print_quote_to_txt
 
@@ -196,10 +197,15 @@ def quote_generator(state: State):
             total, display_dict, quote_body = quoter.quote_project(config, format="html")
             if state.get("debug", False):
                 print_quote_to_txt(format_quote_as_string(display_dict), quote_id, display_dict)
+            # Best-effort PDF estimate attachment; the email still goes out without it.
+            pdf_bytes = render_estimate_pdf(display_dict=display_dict, config=config, quote_id=quote_id, email=email)
             emailer = QuoteEmailer(email)
             installation_required = config.get("installation_required", False)
-            emailer.send_quote(quote_body, quote_id=quote_id, debug=state.get("debug", False), installation_required=installation_required)
-            content_out = f"Quote sent successfully (ref: {quote_id}). Is there anything else we can help with?"
+            emailer.send_quote(quote_body, quote_id=quote_id, debug=state.get("debug", False), installation_required=installation_required, pdf_attachment=pdf_bytes)
+            if pdf_bytes:
+                content_out = f"Done — your written estimate (PDF) is on its way to {email} (ref: {quote_id}). Is there anything else we can help with?"
+            else:
+                content_out = f"Done — your estimate is on its way to {email} (ref: {quote_id}). Is there anything else we can help with?"
         except Exception as e:
             print(f"[quote_generator] Error: {e}")
             content_out = f"We couldn't generate the quote right now ({e}). Is there anything else we can help with?"
@@ -231,7 +237,7 @@ def support_agent(state: State):
             "Do NOT give any generic price range or ballpark prices. Always direct the user to provide project details. "
             "Do NOT ask about materials, finishes, energy efficiency. Do ask about window sizes and types (e.g. height, width, quantity, window type) and whether they need installation to get a price range—never quote prices yourself. "
             "Then add one short sentence offering to answer more questions and to share their project details for a price range. "
-            "Keep the tone concise and helpful. If no answer provided from experts - do not make something up, respond that you cannot answer that and ask them to please call us at 365-832-8589; then invite them to provide project details if they would like a price range."
+            "Keep the tone concise and helpful. If no answer provided from experts - do not make something up, respond that you cannot answer that and ask them to please call us at (647) 699-2371; then invite them to provide project details if they would like a price range."
         )
         messages = [SystemMessage(content=system_prompt)] + state["messages"]
         out = model_io.get_response(messages_lc=messages)
@@ -257,9 +263,11 @@ def support_agent(state: State):
                         follow_up = (
                             "\n\n---\n\n"
                             "This estimate is based on what you've described — your final price is "
-                            "confirmed after a free exact measure. Does everything look right, or "
-                            "would you like to change anything? You can also add more windows, or "
-                            "call us at 365-832-8589 to book your free measure."
+                            "confirmed after a free exact measure.\n\n"
+                            "**Want this as a written PDF estimate?** Reply with your email address "
+                            "and we'll send it over — window diagrams and all. You can also change "
+                            "anything, add more windows, or call us at (647) 699-2371 to book your "
+                            "free measure."
                         )
                 except Exception as e:
                     print(f"[support_agent] price-in-chat failed, falling back to summary: {e}")

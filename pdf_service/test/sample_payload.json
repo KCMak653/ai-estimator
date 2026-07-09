@@ -1,0 +1,48 @@
+{
+  "quote_id": "Q-TEST123456",
+  "email": "customer@example.com",
+  "date": "July 9, 2026",
+  "display_dict": {
+    "multi_unit": true,
+    "any_quant_gt_1": true,
+    "installation_req": true,
+    "installation_min_adjusted": 780,
+    "installation_max_adjusted": 910,
+    "windows_total_min_adjusted": 1550,
+    "windows_total_max_adjusted": 1825,
+    "total_min_adjusted": 2330,
+    "total_max_adjusted": 2735,
+    "breakdown": {
+      "window_1": {
+        "type": "Casement",
+        "width": 30, "height": 30,
+        "interior": "White", "exterior": "White",
+        "quantity": 2,
+        "unit_price_min_adjusted": 310, "unit_price_max_adjusted": 365,
+        "price_min_adjusted": 620, "price_max_adjusted": 730
+      },
+      "window_2": {
+        "type": "Fixed / Casement",
+        "width": 60, "height": 48,
+        "interior": "White", "exterior": "Black",
+        "quantity": 1,
+        "unit_price_min_adjusted": 930, "unit_price_max_adjusted": 1095,
+        "price_min_adjusted": 930, "price_max_adjusted": 1095
+      }
+    }
+  },
+  "config": {
+    "installation_required": true,
+    "window_1": {
+      "quantity": 2,
+      "config": { "width": 30, "height": 30, "units": { "unit_1": { "unit_type": "casement", "window_area_frac": 1, "interior": "white", "exterior": "white" } } }
+    },
+    "window_2": {
+      "quantity": 1,
+      "config": { "width": 60, "height": 48, "units": {
+        "unit_1": { "unit_type": "fixed_casement", "window_area_frac": 0.6, "interior": "white", "exterior": "black" },
+        "unit_2": { "unit_type": "casement", "window_area_frac": 0.4, "interior": "white", "exterior": "black" }
+      } }
+    }
+  }
+}

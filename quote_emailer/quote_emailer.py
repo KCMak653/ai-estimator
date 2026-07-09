@@ -29,10 +29,10 @@ class QuoteEmailer:
         if not resend.api_key:
             print("[QuoteEmailer] WARNING: RESEND_API_KEY not set; emails will not send.")
 
-    def send_quote(self, quote: str, quote_id: Optional[str] = None, debug: bool = False, installation_required: bool = False):
-        """Send quote email. quote: HTML body (inserted into template as-is). quote_id: optional unique ref. If debug=True, write HTML to a file. installation_required: use installation CTA template."""
+    def send_quote(self, quote: str, quote_id: Optional[str] = None, debug: bool = False, installation_required: bool = False, pdf_attachment: Optional[bytes] = None):
+        """Send quote email. quote: HTML body (inserted into template as-is). quote_id: optional unique ref. If debug=True, write HTML to a file. installation_required: use installation CTA template. pdf_attachment: optional estimate PDF bytes to attach."""
         body = quote_to_email_html(quote, self.email_address, installation_required=installation_required)
-        subject = f"Your Quote {quote_id}" if quote_id else "Your Generated Quote"
+        subject = f"Your Direct Windows estimate ({quote_id})" if quote_id else "Your Direct Windows estimate"
         if debug:
             out_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "quotes")
             os.makedirs(out_dir, exist_ok=True)
@@ -44,7 +44,7 @@ class QuoteEmailer:
         if not resend.api_key:
             raise ValueError("Email service is not configured. Please try again later.")
         try:
-            resend.Emails.send({
+            params = {
                 "from": "Direct Windows <hello@quote.directwindows.ca>",
                 "to": self.email_address,
                 "subject": subject,
@@ -53,7 +53,15 @@ class QuoteEmailer:
                     "List-Unsubscribe": f"<https://direct-windows-quote.myshopify.com/pages/unsubscribe?contact[email]={self.email_address}>",
                     "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"
                 }
-            })
+            }
+            if pdf_attachment:
+                import base64
+                filename = f"Direct-Windows-Estimate-{quote_id}.pdf" if quote_id else "Direct-Windows-Estimate.pdf"
+                params["attachments"] = [{
+                    "filename": filename,
+                    "content": base64.b64encode(pdf_attachment).decode("ascii"),
+                }]
+            resend.Emails.send(params)
             print(f"[QuoteEmailer] Email sent to {self.email_address} (ref: {quote_id})")
         except Exception as e:
             print(f"[QuoteEmailer] Failed to send email: {e}")
