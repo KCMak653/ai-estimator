@@ -25,7 +25,7 @@ def quote_to_email_html(quote_html: str, user_email: str, installation_required:
 class QuoteEmailer:
     def __init__(self, email_address: str):
         self.email_address = email_address
-        resend.api_key = os.getenv("RESEND_API_KEY")
+        resend.api_key = (os.getenv("RESEND_API_KEY") or "").strip() or None
         if not resend.api_key:
             print("[QuoteEmailer] WARNING: RESEND_API_KEY not set; emails will not send.")
 

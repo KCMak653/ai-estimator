@@ -207,8 +207,10 @@ def quote_generator(state: State):
             else:
                 content_out = f"Done — your estimate is on its way to {email} (ref: {quote_id}). Is there anything else we can help with?"
         except Exception as e:
+            # Log the real error server-side only — exception text can contain
+            # secrets (e.g. API keys in header errors) and must never reach chat.
             print(f"[quote_generator] Error: {e}")
-            content_out = f"We couldn't generate the quote right now ({e}). Is there anything else we can help with?"
+            content_out = "We couldn't send the estimate right now — sorry about that. Please try again in a few minutes, or call us at (647) 699-2371 and we'll take it from there."
     else:
         content_out = "Is there anything else we can help with?"
 
