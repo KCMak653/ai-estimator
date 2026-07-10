@@ -1,0 +1,5 @@
+# Railway/Nixpacks fallback: if this service builds with Nixpacks instead of the
+# Dockerfile, make sure the node runtime is present — it renders the estimate
+# PDF (pdf_service/render_estimate.cjs) as a subprocess. "..." keeps defaults.
+[phases.setup]
+nixPkgs = ["...", "nodejs_18"]
