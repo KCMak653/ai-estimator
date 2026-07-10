@@ -65,6 +65,56 @@ async def chat_endpoint(request: Request, chat_request: ChatRequest):
         "thread_id": thread_id,
     }
 
+@app.get("/health/pdf")
+@limiter.limit("5/minute")
+async def pdf_health(request: Request):
+    """Diagnostic: can this container render the estimate PDF? Auth required.
+    Reports node availability, bundle presence, and a minimal render attempt."""
+    auth = request.headers.get("Authorization")
+    client_key = (auth.split(maxsplit=1)[1].strip() if auth and auth.startswith("Bearer ") else None) or None
+    expected = (API_AUTH_KEY or "").strip() or None
+    if client_key != expected:
+        return PlainTextResponse("Invalid API key", status_code=403)
+
+    import shutil, subprocess
+    from quote_emailer import pdf_estimate
+
+    node = shutil.which("node")
+    node_version = None
+    if node:
+        try:
+            node_version = subprocess.run([node, "--version"], capture_output=True, timeout=10).stdout.decode().strip()
+        except Exception as e:
+            node_version = f"error: {type(e).__name__}"
+    script_exists = os.path.exists(pdf_estimate._RENDER_SCRIPT)
+
+    sample_dd = {"multi_unit": False, "any_quant_gt_1": False, "installation_req": False,
+                 "total_min_adjusted": 100, "total_max_adjusted": 120,
+                 "breakdown": {"window_1": {"type": "Casement", "width": 30, "height": 30,
+                     "interior": "White", "exterior": "White", "quantity": 1,
+                     "unit_price_min_adjusted": 100, "unit_price_max_adjusted": 120,
+                     "price_min_adjusted": 100, "price_max_adjusted": 120}}}
+    sample_cfg = {"installation_required": False, "window_1": {"quantity": 1,
+        "config": {"width": 30, "height": 30, "units": {"unit_1": {"unit_type": "casement", "window_area_frac": 1}}}}}
+    render_err = None
+    render_bytes = 0
+    try:
+        proc = subprocess.run([node or "node", pdf_estimate._RENDER_SCRIPT],
+            input=__import__("json").dumps({"quote_id": "HEALTH", "email": "health@check",
+                "date": "check", "display_dict": sample_dd, "config": sample_cfg}).encode(),
+            capture_output=True, timeout=30)
+        if proc.returncode == 0 and proc.stdout.startswith(b"%PDF"):
+            render_bytes = len(proc.stdout)
+        else:
+            render_err = f"rc={proc.returncode} stderr={proc.stderr.decode('utf-8','replace')[:600]}"
+    except Exception as e:
+        render_err = f"{type(e).__name__}: {e}"
+
+    return {"node": node, "node_version": node_version,
+            "script_exists": script_exists, "script_path": pdf_estimate._RENDER_SCRIPT,
+            "render_ok": render_bytes > 0, "render_bytes": render_bytes, "render_error": render_err}
+
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
