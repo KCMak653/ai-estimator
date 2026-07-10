@@ -6,7 +6,9 @@ import resend
 
 _EMAIL_TEMPLATE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "email_template.html")
 _EMAIL_TEMPLATE_INSTALLATION_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)), "email_template_installation.html")
-UNSUBSCRIBE_PAGE_URL = "https://direct-windows-quote.myshopify.com/pages/unsubscribe"
+# Unsubscribe is mailto-based: the old Shopify unsubscribe page is dead, and
+# CASL requires a working mechanism. Templates link mailto directly.
+UNSUBSCRIBE_PAGE_URL = "mailto:info@directwindows.ca?subject=Unsubscribe"
 
 
 def _load_template(installation_required: bool = False) -> str:
@@ -50,8 +52,7 @@ class QuoteEmailer:
                 "subject": subject,
                 "html": body,
                 "headers": {
-                    "List-Unsubscribe": f"<https://direct-windows-quote.myshopify.com/pages/unsubscribe?contact[email]={self.email_address}>",
-                    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click"
+                    "List-Unsubscribe": "<mailto:info@directwindows.ca?subject=Unsubscribe>"
                 }
             }
             if pdf_attachment:

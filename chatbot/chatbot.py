@@ -23,6 +23,7 @@ from chatbot_project_quoter import ChatbotProjectQuoter, format_quote_as_string
 from quote_emailer.quote_emailer import QuoteEmailer
 from quote_emailer.pdf_estimate import render_estimate_pdf
 
+from .size_limits import check_size_limits
 from .utils import format_config_summary, print_quote_to_txt
 
 _COMPANY_CONTEXT_PATH = Path(__file__).parent / "company_context" / "direct_window_replacement_context.txt"
@@ -179,6 +180,13 @@ def config_generator(state: State):
         return {"messages": [AIMessage(content=f"I had trouble parsing one or more window configs.")], "prev": Node.GENERATOR, "config_valid": False, "config_warnings": full_warnings}
     full_config['installation_required'] = config['installation_required']
     print("config: ", full_config)
+
+    # Manufacturing size limits (VinylPro min/max sheet). Out-of-range windows
+    # are not priced; the warnings flow explains the limits to the customer.
+    size_violations = check_size_limits(full_config)
+    if size_violations:
+        print("[config_generator] size limit violations:", size_violations)
+        return {"messages": [AIMessage(content="One or more windows are outside manufacturing size limits.")], "prev": Node.GENERATOR, "config_valid": False, "config_warnings": size_violations}
 
     return {"messages": [AIMessage(content="Config generated successfully.")], "prev": Node.GENERATOR, "config": full_config, "config_valid": True}
 
