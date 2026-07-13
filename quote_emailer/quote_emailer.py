@@ -50,7 +50,7 @@ class QuoteEmailer:
                 "from": "Direct Windows <hello@quote.directwindows.ca>",
                 "to": self.email_address,
                 # Business copy of every estimate — lead visibility without a CRM.
-                "bcc": (os.getenv("LEAD_BCC_EMAIL") or "info@directwindows.ca").strip(),
+                "bcc": (os.getenv("LEAD_BCC_EMAIL") or "david@directwindows.ca").strip(),
                 "subject": subject,
                 "html": body,
                 "headers": {
