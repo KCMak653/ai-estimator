@@ -13,7 +13,9 @@ from typing import Any, Dict, Tuple
 from window_quoter.window_quoter import WindowQuoter
 
 
-EGRESS_EXPERTS_SURCHARGE = 0.37
+# 2026-07-13: zeroed (was 0.37) to test whether pricing is the contact→lead bottleneck.
+# Range is now dealer cost × MIN/MAX_ADJUSTMENT only.
+EGRESS_EXPERTS_SURCHARGE = 0.0
 MIN_ADJUSTMENT = 1.2
 MAX_ADJUSTMENT = 1.4
 
