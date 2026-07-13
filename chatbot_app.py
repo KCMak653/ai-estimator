@@ -5,10 +5,14 @@ from slowapi import Limiter, _rate_limit_exceeded_handler
 from slowapi.errors import RateLimitExceeded
 
 from chatbot.chatbot import agent_app
+import html
+import re
 import uuid
 from typing import Optional
 from fastapi.middleware.cors import CORSMiddleware
 import os
+
+import resend
 
 
 def get_real_ip(request: Request):
@@ -64,6 +68,61 @@ async def chat_endpoint(request: Request, chat_request: ChatRequest):
         "response": assistant_msg,
         "thread_id": thread_id,
     }
+
+class CallbackRequest(BaseModel):
+    phone: str
+    name: Optional[str] = None
+    thread_id: Optional[str] = None
+    page: Optional[str] = None
+
+
+@app.post("/callback-request")
+@limiter.limit("3/minute; 10/day")
+async def callback_request(request: Request, cb: CallbackRequest):
+    """'Talk to a human' button: email the business a callback request.
+    Alert goes to LEAD_BCC_EMAIL (same var as estimate BCCs), else david@."""
+    auth = request.headers.get("Authorization")
+    client_key = (auth.split(maxsplit=1)[1].strip() if auth and auth.startswith("Bearer ") else None) or None
+    expected = (API_AUTH_KEY or "").strip() or None
+    if client_key != expected:
+        return PlainTextResponse("Invalid API key", status_code=403)
+
+    digits = re.sub(r"\D", "", cb.phone or "")
+    if not (10 <= len(digits) <= 15):
+        return PlainTextResponse("Please provide a valid phone number.", status_code=400)
+
+    resend.api_key = (os.getenv("RESEND_API_KEY") or "").strip() or None
+    if not resend.api_key:
+        return PlainTextResponse("Callback service is not configured.", status_code=503)
+
+    name = html.escape((cb.name or "").strip()[:100])
+    phone = html.escape((cb.phone or "").strip()[:40])
+    page = html.escape((cb.page or "").strip()[:200])
+    thread = html.escape((cb.thread_id or "").strip()[:60])
+
+    body = f'<p style="font-size:16px;margin:0 0 12px;"><strong>Phone:</strong> <a href="tel:{digits}">{phone}</a></p>'
+    if name:
+        body += f'<p style="margin:0 0 12px;"><strong>Name:</strong> {name}</p>'
+    if page:
+        body += f'<p style="margin:0 0 12px;"><strong>Page:</strong> {page}</p>'
+    if thread:
+        body += f'<p style="margin:0 0 12px;color:#667085;">Chat thread: {thread}</p>'
+    body += '<p style="margin:16px 0 0;color:#667085;">Sent by the "talk to a human" button on estimate.directwindows.ca.</p>'
+
+    subject = f"\U0001F4DE Callback request — {phone}" + (f" ({name})" if name else "")
+    try:
+        resend.Emails.send({
+            "from": "Direct Windows <hello@quote.directwindows.ca>",
+            "to": (os.getenv("LEAD_BCC_EMAIL") or "david@directwindows.ca").strip(),
+            "subject": subject,
+            "html": body,
+        })
+    except Exception as e:
+        print(f"[callback-request] Failed to send alert email: {e}")
+        return PlainTextResponse("Could not send your request. Please call us directly.", status_code=502)
+
+    return {"ok": True}
+
 
 @app.get("/health/pdf")
 @limiter.limit("5/minute")
