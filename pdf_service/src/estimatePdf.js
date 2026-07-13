@@ -23,7 +23,7 @@ const CONTENT_W = PAGE_W - MX * 2;
 const FOOTER_H = 0.55;
 
 const COMPANY_NAME    = 'Direct Windows & Doors';
-const COMPANY_PHONE   = '(647) 699-2371';
+const COMPANY_PHONE   = '(365) 832-8589';
 const COMPANY_EMAIL   = 'info@directwindows.ca';
 const COMPANY_ADDRESS = '1060 Sheppard Ave W, Toronto, ON M3J 0G7';
 const COMPANY_SITE    = 'directwindows.ca';
