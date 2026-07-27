@@ -218,7 +218,7 @@ def quote_generator(state: State):
             # Log the real error server-side only — exception text can contain
             # secrets (e.g. API keys in header errors) and must never reach chat.
             print(f"[quote_generator] Error: {e}")
-            content_out = "We couldn't send the estimate right now — sorry about that. Please try again in a few minutes, or call us at (647) 699-2371 and we'll take it from there."
+            content_out = "We couldn't send the estimate right now — sorry about that. Please try again in a few minutes, or call us at (365) 832-8589 and we'll take it from there."
     else:
         content_out = "Is there anything else we can help with?"
 
@@ -247,7 +247,7 @@ def support_agent(state: State):
             "Do NOT give any generic price range or ballpark prices. Always direct the user to provide project details. "
             "Do NOT ask about materials, finishes, energy efficiency. Do ask about window sizes and types (e.g. height, width, quantity, window type) and whether they need installation to get a price range—never quote prices yourself. "
             "Then add one short sentence offering to answer more questions and to share their project details for a price range. "
-            "Keep the tone concise and helpful. If no answer provided from experts - do not make something up, respond that you cannot answer that and ask them to please call us at (647) 699-2371; then invite them to provide project details if they would like a price range."
+            "Keep the tone concise and helpful. If no answer provided from experts - do not make something up, respond that you cannot answer that and ask them to please call us at (365) 832-8589; then invite them to provide project details if they would like a price range."
         )
         messages = [SystemMessage(content=system_prompt)] + state["messages"]
         out = model_io.get_response(messages_lc=messages)
@@ -276,7 +276,7 @@ def support_agent(state: State):
                             "confirmed after a free exact measure.\n\n"
                             "**Want this as a written PDF estimate?** Reply with your email address "
                             "and we'll send it over — window diagrams and all. You can also change "
-                            "anything, add more windows, or call us at (647) 699-2371 to book your "
+                            "anything, add more windows, or call us at (365) 832-8589 to book your "
                             "free measure."
                         )
                 except Exception as e:
